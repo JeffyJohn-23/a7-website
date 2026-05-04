@@ -7,53 +7,63 @@ import Image from "next/image";
 const projects = [
   {
     id: 1,
-    title: "Brand Vision",
-    category: "Creative Direction",
-    year: "2026",
-    date: "Spring 2026",
-    place: "Lagos, Nigeria",
-    description: "A comprehensive brand identity project fusing bold visual storytelling with strategic creative direction. From visual systems to campaign rollouts, this work captures the intersection of artistry and precision.",
-    images: ["/gallery/brand-design.jpg", "/gallery/red-silhouettes.jpg"],
+    title: "World Tennis League",
+    category: "Sports & Live Events",
+    year: "2024",
+    date: "December 2024",
+    place: "Dubai, UAE",
+    description: "A global spectacle of elite tennis and entertainment, brought to life with full-scale production management. From artist performances between sets to precision court-side staging, A7 delivered an experience that matched the scale of the sport.",
+    images: ["/gallery/team-experts.jpg", "/gallery/red-silhouettes.jpg"],
   },
   {
     id: 2,
-    title: "Team Innovation",
-    category: "Event Production",
-    year: "2026",
-    date: "Summer 2026",
-    place: "Abuja, Nigeria",
-    description: "An immersive event experience designed to spark collaboration and ignite creative energy. Every detail from spatial design to moment sequencing was crafted to leave an unforgettable mark on every attendee.",
-    images: ["/gallery/team-experts.jpg", "/gallery/team-innovation.jpg"],
+    title: "Ben Bhomer",
+    category: "Celebrity Management",
+    year: "2024",
+    date: "2024",
+    place: "India",
+    description: "End-to-end celebrity engagement and talent management for Ben Bhomer — coordinating appearances, endorsements, and media interactions to build a commanding and consistent public presence.",
+    images: ["/gallery/red-silhouettes.jpg", "/gallery/brand-design.jpg"],
   },
   {
     id: 3,
-    title: "Invitation Gala",
-    category: "Concert & Gala",
-    year: "2026",
-    date: "Winter 2026",
-    place: "Accra, Ghana",
-    description: "An exclusive invitation-only gala uniting industry leaders, creatives, and culture shapers in a single extraordinary evening. Precision, elegance, and electric atmosphere at its finest.",
+    title: "Dil Se Diwali 2025",
+    category: "Festival Production",
+    year: "2025",
+    date: "October 2025",
+    place: "India",
+    description: "A grand festival celebration blending cultural tradition with high-energy entertainment. Dil Se Diwali 2025 brought thousands together in a meticulously produced live experience — lights, performances, and moments that resonated.",
     images: ["/gallery/invitation-event.jpg", "/gallery/red-silhouettes.jpg"],
   },
   {
     id: 4,
-    title: "Crimson Experience",
-    category: "Brand Activation",
+    title: "Dandiya 2025",
+    category: "Cultural Experience",
     year: "2025",
-    date: "Autumn 2025",
-    place: "Nairobi, Kenya",
-    description: "A bold brand activation that turned heads and sparked conversations across the continent. Leveraging immersive environments and cultural moments to build lasting brand equity.",
-    images: ["/gallery/red-silhouettes.jpg", "/gallery/brand-design.jpg"],
+    date: "October 2025",
+    place: "India",
+    description: "A vibrant celebration of Navratri culture scaled into a premium live experience. Dandiya 2025 combined traditional energy with modern production to create an electric evening that left audiences wanting more.",
+    images: ["/gallery/invitation-event.jpg", "/gallery/team-innovation.jpg"],
   },
   {
     id: 5,
-    title: "Corporate Summit",
-    category: "Corporate Events",
+    title: "Vesparo Launch",
+    category: "Brand Launch",
     year: "2025",
-    date: "Spring 2025",
-    place: "Cape Town, South Africa",
-    description: "A high-stakes corporate summit bringing together decision-makers and innovators for two days of insightful dialogue. Meticulously produced to balance gravitas with inspiration at every turn.",
-    images: ["/gallery/team-experts.jpg", "/gallery/invitation-event.jpg"],
+    date: "2025",
+    place: "India",
+    description: "Making a first impression that lasts. The Vesparo brand launch was designed as an immersive unveiling experience — from spatial design to curated guest journeys, every detail positioned the brand with precision and elegance.",
+    images: ["/gallery/brand-design.jpg", "/gallery/team-experts.jpg"],
+  },
+  {
+    id: 6,
+    title: "Dhamree Launch",
+    category: "Brand Launch",
+    year: "2025",
+    date: "2025",
+    place: "India",
+    description: "A bold debut for Dhamree — executed with cinematic production value and strategic storytelling. The launch experience captivated media, influencers, and consumers alike, turning a product reveal into a cultural moment.",
+    images: ["/gallery/brand-design.jpg", "/gallery/team-innovation.jpg"],
   },
 ];
 
@@ -437,6 +447,12 @@ export function GallerySection() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [hoveredProject, setHoveredProject] = useState<(typeof projects)[number] | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isTouch, setIsTouch] = useState(false);
+
+  // Detect touch-only devices — disable hover preview on them
+  useEffect(() => {
+    setIsTouch(window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+  }, []);
 
   const openProject = useCallback((idx: number) => setActiveIndex(idx), []);
   const closeViewer = useCallback(() => setActiveIndex(null), []);
@@ -447,9 +463,8 @@ export function GallerySection() {
     <section id="gallery" className="relative w-full min-h-screen section-padding" style={{ paddingTop: "8rem", paddingBottom: "7rem" }}>
       <div className="max-w-7xl mx-auto">
         <div style={{ marginBottom: "5rem" }}>
-          <span className="text-[11px] tracking-[0.4em] uppercase text-primary font-sans block mb-7">Portfolio</span>
           <h2 className="font-display text-4xl md:text-6xl lg:text-[5rem] font-bold leading-[1.05] text-white">
-            Selected<br />Works
+            Our<br />Projects
           </h2>
         </div>
 
@@ -458,9 +473,9 @@ export function GallerySection() {
             <motion.div
               key={project.id}
               onClick={() => openProject(idx)}
-              onMouseEnter={() => setHoveredProject(project)}
-              onMouseLeave={() => setHoveredProject(null)}
-              onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
+              onMouseEnter={isTouch ? undefined : () => setHoveredProject(project)}
+              onMouseLeave={isTouch ? undefined : () => setHoveredProject(null)}
+              onMouseMove={isTouch ? undefined : (e) => setMousePos({ x: e.clientX, y: e.clientY })}
               className="group border-t border-white/[0.1] transition-colors duration-300 hover:bg-white/[0.04] cursor-pointer"
               style={{ paddingTop: "1.75rem", paddingBottom: "1.75rem" }}
               initial={{ opacity: 0, y: 20 }}
@@ -491,7 +506,7 @@ export function GallerySection() {
         </div>
 
         <AnimatePresence mode="wait">
-          {hoveredProject && (
+          {hoveredProject && !isTouch && (
             <motion.div
               className="fixed z-40 pointer-events-none w-52 h-36 rounded-xl overflow-hidden"
               style={{ left: mousePos.x + 20, top: mousePos.y - 72 }}

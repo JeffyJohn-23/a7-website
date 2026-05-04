@@ -437,14 +437,37 @@ export function GallerySection() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [hoveredProject, setHoveredProject] = useState<(typeof projects)[number] | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isTouch, setIsTouch] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const PREVIEW_W = 208; // px
+  const PREVIEW_H = 144; // px
+
+  // Detect touch-only devices — disable hover preview on them
+  useEffect(() => {
+    setIsTouch(window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+  }, []);
 
   const openProject = useCallback((idx: number) => setActiveIndex(idx), []);
   const closeViewer = useCallback(() => setActiveIndex(null), []);
   const goPrev = useCallback(() => setActiveIndex((p) => (p !== null && p > 0 ? p - 1 : p)), []);
   const goNext = useCallback(() => setActiveIndex((p) => (p !== null && p < projects.length - 1 ? p + 1 : p)), []);
 
+  // Clamp preview within the section's current visible area (all in viewport coords → fixed positioning)
+  const getPreviewPos = () => {
+    const rawX = mousePos.x + 20;
+    const rawY = mousePos.y - PREVIEW_H / 2;
+    if (!sectionRef.current) return { x: rawX, y: rawY };
+    const rect = sectionRef.current.getBoundingClientRect();
+    const clampedX = Math.min(Math.max(rawX, rect.left + 8), rect.right - PREVIEW_W - 8);
+    const clampedY = Math.min(Math.max(rawY, rect.top + 8), rect.bottom - PREVIEW_H - 8);
+    return { x: clampedX, y: clampedY };
+  };
+
+  const previewPos = getPreviewPos();
+
   return (
-    <section id="gallery" className="relative w-full min-h-screen section-padding" style={{ paddingTop: "8rem", paddingBottom: "7rem" }}>
+    <section ref={sectionRef} id="gallery" className="relative w-full min-h-screen section-padding" style={{ paddingTop: "8rem", paddingBottom: "7rem" }}>
       <div className="max-w-7xl mx-auto">
         <div style={{ marginBottom: "5rem" }}>
           <span className="text-[11px] tracking-[0.4em] uppercase text-primary font-sans block mb-7">Portfolio</span>
@@ -493,8 +516,8 @@ export function GallerySection() {
         <AnimatePresence mode="wait">
           {hoveredProject && (
             <motion.div
-              className="fixed z-40 pointer-events-none w-52 h-36 rounded-xl overflow-hidden"
-              style={{ left: mousePos.x + 20, top: mousePos.y - 72 }}
+              className="fixed z-40 pointer-events-none rounded-xl overflow-hidden"
+              style={{ left: previewPos.x, top: previewPos.y, width: PREVIEW_W, height: PREVIEW_H }}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}

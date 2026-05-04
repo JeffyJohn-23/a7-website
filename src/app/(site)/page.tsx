@@ -24,8 +24,8 @@ export default function Home() {
       <main>
         <HomeHero />
         <AboutSection />
-        <GallerySection />
         <ServicesSection />
+        <GallerySection />
         <ContactSection />
       </main>
       <Footer />

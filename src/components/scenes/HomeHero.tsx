@@ -50,7 +50,7 @@ export function HomeHero() {
         loop
         playsInline
         className="absolute inset-0 w-full h-full object-cover"
-        style={{ zIndex: 0 }}
+        style={{ zIndex: 0, objectPosition: 'center center' }}
       >
         <source src="/hero.mp4" type="video/mp4" />
       </video>

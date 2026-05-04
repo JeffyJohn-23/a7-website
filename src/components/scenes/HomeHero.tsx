@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 
 export function HomeHero() {
@@ -12,9 +12,28 @@ export function HomeHero() {
   const scrollRef     = useRef<HTMLDivElement>(null);
   const dividerRef    = useRef<HTMLDivElement>(null);
 
+  // Delay video injection so it doesn't block first contentful paint
+  const [showVideo, setShowVideo] = useState(false);
+
+  useEffect(() => {
+    // Inject video after first paint via requestIdleCallback / rAF fallback
+    const id = typeof requestIdleCallback !== "undefined"
+      ? requestIdleCallback(() => setShowVideo(true))
+      : undefined;
+    const raf = id === undefined
+      ? requestAnimationFrame(() => setShowVideo(true))
+      : undefined;
+
+    return () => {
+      if (id !== undefined) cancelIdleCallback(id);
+      if (raf !== undefined) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  // Defer GSAP animations until after mount — they are non-critical to FCP
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ delay: 0.8 });
+      const tl = gsap.timeline({ delay: 0.3 });
 
       tl.fromTo(
         line1Ref.current,
@@ -43,17 +62,28 @@ export function HomeHero() {
       id="home"
       className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden"
     >
-      {/* â”€â”€ Video background â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{ zIndex: 0, objectPosition: 'center center' }}
-      >
-        <source src="/hero.mp4" type="video/mp4" />
-      </video>
+      {/* Video background — injected after first paint to avoid blocking FCP/LCP */}
+      {showVideo && (
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="none"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ zIndex: 0, objectPosition: "center center" }}
+        >
+          <source src="/hero.mp4" type="video/mp4" />
+        </video>
+      )}
+
+      {/* Static dark background — visible instantly while video loads */}
+      {!showVideo && (
+        <div
+          className="absolute inset-0"
+          style={{ zIndex: 0, background: "#000000" }}
+        />
+      )}
 
       {/* â”€â”€ Dark overlay â€” keeps text legible over the video â”€â”€â”€â”€â”€â”€â”€ */}
       <div

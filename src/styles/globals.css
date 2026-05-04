@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+:root {
+  --background: #000000;
+  --foreground: #FFFFFF;
+  --muted: #666666;
+  --primary: #FF0000;
+  --primary-hover: #FF3333;
+  --accent: #000000;
+  --surface: #0d0d0d;
+  --border: rgba(255, 255, 255, 0.08);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+/* Consistent layout padding */
+.section-padding {
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+@media (min-width: 768px) {
+  .section-padding {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+@media (min-width: 1280px) {
+  .section-padding {
+    padding-left: 6rem;
+    padding-right: 6rem;
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  cursor: none;
+  /* Hide native scrollbar — Lenis handles scrolling */
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar {
+  display: none;
+}
+
+html,
+body {
+  width: 100%;
+  color: var(--foreground);
+  overflow-x: clip;
+  /* Hide scrollbar on all browsers */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+}
+
+body {
+  font-family: "Rethink Sans", system-ui, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #000000;
+}
+
+/* Restore cursor on mobile / touch */
+@media (pointer: coarse) {
+  html { cursor: auto; }
+}
+
+::selection {
+  background-color: var(--primary);
+  color: #fff;
+}
+
+/* Links and buttons keep pointer cursor hidden for custom cursor */
+a, button { cursor: none; }
+@media (pointer: coarse) {
+  a, button { cursor: pointer; }
+}
+
+/* Marquee */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+/* Reveal base states (animated by GSAP) */
+.reveal-up {
+  opacity: 0;
+  transform: translateY(50px);
+}
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-50px);
+}
+.reveal-right {
+  opacity: 0;
+  transform: translateX(50px);
+}
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+/* Clip text reveal */
+.clip-reveal {
+  clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0% 100%);
+}
+.clip-revealed {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+}
+
+/* Red glow */
+.red-glow {
+  box-shadow: 0 0 100px 30px rgba(196, 30, 30, 0.08);
+}
+
+/* Section separator */
+.section-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--border) 20%, var(--border) 80%, transparent 100%);
+}

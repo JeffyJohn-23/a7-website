@@ -91,13 +91,36 @@ export function ContactSection() {
   const doodleRefs = useRef<(SVGSVGElement | null)[]>([]);
   const doodleStrip = useRef<HTMLDivElement>(null);
   const [focused, setFocused] = useState<string | null>(null);
-  const [formState, setFormState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [formState, setFormState] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [formValues, setFormValues] = useState({ name: "", email: "", subject: "", message: "" });
+
+  const handleChange = (field: string, value: string) =>
+    setFormValues((p) => ({ ...p, [field]: value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormState('loading');
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setFormState('success');
+    const { name, email, subject, message } = formValues;
+    if (!name.trim() || !email.trim() || !subject.trim() || !message.trim()) {
+      setFormState("error");
+      return;
+    }
+    setFormState("loading");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formValues),
+      });
+      const data: { success: boolean } = await res.json();
+      if (res.ok && data.success) {
+        setFormState("success");
+        setFormValues({ name: "", email: "", subject: "", message: "" });
+      } else {
+        setFormState("error");
+      }
+    } catch {
+      setFormState("error");
+    }
   };
 
   useEffect(() => {
@@ -221,6 +244,10 @@ export function ContactSection() {
                     </label>
                     <input
                       type={field.type}
+                      name={field.name}
+                      value={formValues[field.name as keyof typeof formValues]}
+                      onChange={(e) => handleChange(field.name, e.target.value)}
+                      required
                       className="w-full bg-transparent border-b-2 border-black/15 pb-3 pt-1 text-[#111] text-sm focus:outline-none focus:border-[#FF0000] transition-colors duration-300"
                       onFocus={() => setFocused(field.name)}
                       onBlur={() => setFocused(null)}
@@ -234,6 +261,10 @@ export function ContactSection() {
                   </label>
                   <textarea
                     rows={5}
+                    name="message"
+                    value={formValues.message}
+                    onChange={(e) => handleChange("message", e.target.value)}
+                    required
                     className="w-full bg-transparent border-b-2 border-black/15 pb-3 pt-1 text-[#111] text-sm focus:outline-none focus:border-[#FF0000] transition-colors duration-300 resize-none"
                     onFocus={() => setFocused("message")}
                     onBlur={() => setFocused(null)}

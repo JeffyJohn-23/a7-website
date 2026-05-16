@@ -1,6 +1,7 @@
 // Server Component — no "use client" so Next.js can SSR above-the-fold content
 import { ClientShell } from "@/components/ui/ClientShell";
 import "@/styles/globals.css";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata = {
   title: "A7 Entertainment",
@@ -31,6 +32,8 @@ export default function RootLayout({
         <ClientShell>
           {children}
         </ClientShell>
+        {/* Vercel Analytics (client) — placed after children per App Router guidance */}
+        <Analytics />
       </body>
     </html>
   );

@@ -182,16 +182,16 @@ export function ContactSection() {
             </p>
 
             <div className="space-y-5">
-              <a href="mailto:hello@a7entertainment.com" className="flex items-center gap-4 group">
+              <a href="mailto:enquiry@a7entertainment.in" className="flex items-center gap-4 group">
                 <div className="w-8 h-px bg-black/25 group-hover:bg-[#FF0000] group-hover:w-12 transition-all duration-300" />
                 <span className="text-[13px] text-[#2a2a2a] group-hover:text-black transition-colors duration-300 font-medium">
-                  hello@a7entertainment.com
+                  enquiry@a7entertainment.in
                 </span>
               </a>
-              <a href="tel:+15550000000" className="flex items-center gap-4 group">
+              <a href="tel:+919886112547" className="flex items-center gap-4 group">
                 <div className="w-8 h-px bg-black/25 group-hover:bg-[#FF0000] group-hover:w-12 transition-all duration-300" />
                 <span className="text-[13px] text-[#2a2a2a] group-hover:text-black transition-colors duration-300 font-medium">
-                  +1 (555) 000-0000
+                  +919886112547
                 </span>
               </a>
             </div>

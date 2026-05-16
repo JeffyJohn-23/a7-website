@@ -26,9 +26,10 @@ Sub-pages exist at `/about`, `/gallery`, `/services`, `/contact` using `HeroScen
 
 | Path | Purpose |
 |------|---------|
-| `src/app/layout.tsx` | Root layout — `"use client"`, Lenis smooth-scroll init, Google Fonts (Rethink Sans + Playfair Display), `<CustomCursor />` |
+| `src/app/layout.tsx` | Root layout — **Server Component**, Google Fonts, wraps children in `<ClientShell />` + Vercel Analytics |
 | `src/app/(site)/layout.tsx` | Site layout — renders `<Header />` + children. Server component. |
-| `src/app/(site)/page.tsx` | Home — all sections stacked: `HomeHero → AboutSection → GallerySection → ServicesSection → ContactSection → Footer` |
+| `src/app/(site)/page.tsx` | Home — `"use client"`, sections lazy-loaded via `dynamic()`: `HomeHero → AboutSection → ServicesSection → GallerySection → ContactSection → Footer` |
+| `src/components/ui/ClientShell.tsx` | `"use client"` boundary — initializes Lenis in `useEffect`, renders `<CustomCursor />`. Keeps root layout a Server Component for SSR. |
 | `src/components/scenes/HomeHero.tsx` | Fullscreen hero (`id="home"`) — clip-path text reveal, red radial glow, corner brackets, floating stats, year stamp |
 | `src/components/scenes/HeroScene.tsx` | Generic hero for sub-pages — accepts `title`, `subtitle`, `cta` props |
 | `src/components/scenes/StoryScene.tsx` | Content block for sub-pages — text + optional image, GSAP scroll reveal |
@@ -55,6 +56,8 @@ These exist but are **not imported or rendered** anywhere:
 - `src/components/transitions/PageTransition.tsx` — defined, not wrapping any layout
 - `src/components/sections/Hero.tsx` — legacy, replaced by `HomeHero`
 - `src/components/animations/` — empty directory
+
+**Performance note:** All sections below `HomeHero` in `page.tsx` use `next/dynamic` with `ssr: false` for lazy loading.
 
 ---
 
@@ -224,7 +227,7 @@ a, button { cursor: none; } /* Touch devices: cursor: pointer via @media (pointe
 
 ## Dependencies — Notes
 
-- **Two Lenis packages installed:** `lenis` (v1.3.23, actively used) and `@studio-freight/lenis` (v1.0.42, legacy — can be removed)
+- **Lenis:** `lenis` (v1.3.23) — single active package. `@studio-freight/lenis` has been removed.
 - **GSAP 3.15** — not the paid GSAP Club plugins
 - **Framer Motion 12** — stricter TypeScript types than v10/v11; avoid `Variants` type for bezier ease, prefer direct `animate` props or typed tuple constants
 

@@ -3,8 +3,8 @@
 import Image from "next/image";
 
 const socials = [
-  { label: "Instagram", href: "#" },
-  { label: "LinkedIn",  href: "#" },
+  { label: "Instagram", href: "https://www.instagram.com/a7entertainment/" },
+  { label: "LinkedIn",  href: "https://www.linkedin.com/company/a7entertainment" },
 ];
 
 export function Footer() {
@@ -34,6 +34,8 @@ export function Footer() {
             <a
               key={s.label}
               href={s.href}
+              target="_blank"
+              rel="noopener noreferrer"
               data-cursor-hover
               className="text-[11px] tracking-[0.25em] uppercase font-sans font-medium transition-colors duration-200"
               style={{ color: "rgba(255,255,255,0.75)" }}

@@ -165,6 +165,7 @@ export async function POST(req: NextRequest) {
       to: ["enquiry@a7entertainment.in"],
       reply_to: email,
       subject: `Website Enquiry: ${subject}`,
+      text: `Name: ${name}\nEmail: ${email}\n\n${message}\n\nSubmitted: ${timestamp}`,
       html: htmlEmail,
     });
 

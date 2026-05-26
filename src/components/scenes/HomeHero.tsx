@@ -1,56 +1,56 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import gsap from "gsap";
 
 export function HomeHero() {
-  const sectionRef    = useRef<HTMLElement>(null);
-  const titleWrapRef  = useRef<HTMLDivElement>(null);
-  const line1Ref      = useRef<HTMLDivElement>(null);
-  const line2Ref      = useRef<HTMLDivElement>(null);
-  const tagRef        = useRef<HTMLParagraphElement>(null);
-  const scrollRef     = useRef<HTMLDivElement>(null);
-  const dividerRef    = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const labelRef   = useRef<HTMLDivElement>(null);
+  const line1Ref   = useRef<HTMLDivElement>(null);
+  const line2Ref   = useRef<HTMLDivElement>(null);
+  const line3Ref   = useRef<HTMLDivElement>(null);
+  const subRef     = useRef<HTMLParagraphElement>(null);
+  const ctaRef     = useRef<HTMLDivElement>(null);
+  const statsRef   = useRef<HTMLDivElement>(null);
 
-  // Delay video injection so it doesn't block first contentful paint
-  const [showVideo, setShowVideo] = useState(false);
-
-  useEffect(() => {
-    // Inject video after first paint via requestIdleCallback / rAF fallback
-    const id = typeof requestIdleCallback !== "undefined"
-      ? requestIdleCallback(() => setShowVideo(true))
-      : undefined;
-    const raf = id === undefined
-      ? requestAnimationFrame(() => setShowVideo(true))
-      : undefined;
-
-    return () => {
-      if (id !== undefined) cancelIdleCallback(id);
-      if (raf !== undefined) cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  // Defer GSAP animations until after mount — they are non-critical to FCP
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ delay: 0.3 });
+      const tl = gsap.timeline({ delay: 0.25 });
 
-      tl.fromTo(
-        line1Ref.current,
-        { clipPath: "polygon(0 100%, 100% 100%, 100% 100%, 0% 100%)" },
-        { clipPath: "polygon(0 0, 100% 0, 100% 100%, 0% 100%)", duration: 1.2, ease: "power4.inOut" }
+      tl.fromTo(labelRef.current,
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }
       )
-        .fromTo(
-          line2Ref.current,
-          { clipPath: "polygon(0 100%, 100% 100%, 100% 100%, 0% 100%)" },
-          { clipPath: "polygon(0 0, 100% 0, 100% 100%, 0% 100%)", duration: 1.2, ease: "power4.inOut" },
-          "-=0.9"
+        .fromTo(line1Ref.current,
+          { opacity: 0, y: 28 },
+          { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" },
+          "-=0.2"
         )
-        .fromTo(dividerRef.current, { scaleX: 0 }, { scaleX: 1, duration: 1, ease: "power3.inOut" }, "-=0.6")
-        .fromTo(tagRef.current,     { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, "-=0.4")
-        .fromTo(scrollRef.current,  { opacity: 0 }, { opacity: 1, duration: 0.6 }, "-=0.2");
-
-      gsap.to(scrollRef.current, { y: 8, repeat: -1, yoyo: true, duration: 2, ease: "sine.inOut" });
+        .fromTo(line2Ref.current,
+          { opacity: 0, y: 28 },
+          { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" },
+          "-=0.6"
+        )
+        .fromTo(line3Ref.current,
+          { opacity: 0, y: 28 },
+          { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" },
+          "-=0.6"
+        )
+        .fromTo(subRef.current,
+          { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
+          "-=0.45"
+        )
+        .fromTo(ctaRef.current,
+          { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+          "-=0.4"
+        )
+        .fromTo(statsRef.current,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6 },
+          "-=0.3"
+        );
     }, sectionRef);
 
     return () => ctx.revert();
@@ -60,134 +60,197 @@ export function HomeHero() {
     <section
       ref={sectionRef}
       id="home"
-      className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden"
+      className="relative w-full flex flex-col overflow-hidden"
+      style={{ minHeight: "100svh", background: "#000000" }}
     >
-      {/* Video background — injected after first paint to avoid blocking FCP/LCP */}
-      {showVideo && (
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="none"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ zIndex: 0, objectPosition: "center center" }}
-        >
-          <source src="/hero.mp4" type="video/mp4" />
-        </video>
-      )}
-
-      {/* Static dark background — visible instantly while video loads */}
-      {!showVideo && (
-        <div
-          className="absolute inset-0"
-          style={{ zIndex: 0, background: "#000000" }}
-        />
-      )}
-
-      {/* â”€â”€ Dark overlay â€” keeps text legible over the video â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Ghost "A7" background watermark (like Rig.ai's ghost number) ── */}
       <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          zIndex: 1,
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.65) 100%)",
-        }}
-      />
-
-      {/* â”€â”€ Ambient red glow (kept subtle under video) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none"
-        style={{
-          zIndex: 2,
-          background: "radial-gradient(circle, #FF0000 0%, transparent 65%)",
-          opacity: 0.06,
-        }}
-      />
-
-      {/* â”€â”€ Black cinematic border frame (the radga.com effect) â”€â”€â”€â”€â”€ */}
-      {/* An inset border on all 4 sides creates the cinema-frame look */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          zIndex: 30,
-          border: "clamp(10px, 1.6vw, 22px) solid #000000",
-        }}
-      />
-
-      {/* â”€â”€ Corner accent brackets (inside the frame) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="absolute pointer-events-none" style={{ top: "clamp(18px, 3vw, 40px)", left: "clamp(18px, 3vw, 40px)", width: 36, height: 36, borderTop: "1px solid rgba(255,255,255,0.25)", borderLeft: "1px solid rgba(255,255,255,0.25)", zIndex: 31 }} />
-      <div className="absolute pointer-events-none" style={{ top: "clamp(18px, 3vw, 40px)", right: "clamp(18px, 3vw, 40px)", width: 36, height: 36, borderTop: "1px solid rgba(255,255,255,0.25)", borderRight: "1px solid rgba(255,255,255,0.25)", zIndex: 31 }} />
-      <div className="absolute pointer-events-none" style={{ bottom: "clamp(18px, 3vw, 40px)", right: "clamp(18px, 3vw, 40px)", width: 36, height: 36, borderBottom: "1px solid rgba(255,255,255,0.25)", borderRight: "1px solid rgba(255,255,255,0.25)", zIndex: 31 }} />
-      <div className="absolute pointer-events-none" style={{ bottom: "clamp(18px, 3vw, 40px)", left: "clamp(18px, 3vw, 40px)", width: 36, height: 36, borderBottom: "1px solid rgba(255,255,255,0.25)", borderLeft: "1px solid rgba(255,255,255,0.25)", zIndex: 31 }} />
-
-      {/* â”€â”€ Year stamp â€” bottom left (inside frame) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="absolute flex flex-col gap-1 pointer-events-none" style={{ bottom: "clamp(28px, 4vw, 52px)", left: "clamp(28px, 4vw, 52px)", zIndex: 31 }}>
-        <span className="text-[9px] tracking-[0.4em] uppercase font-sans" style={{ color: "rgba(255,255,255,0.2)" }}>Est.</span>
-        <span className="text-[11px] tracking-[0.2em] font-sans font-medium" style={{ color: "rgba(255,255,255,0.28)" }}>2016</span>
-      </div>
-
-      {/* â”€â”€ Floating stats â€” bottom right (inside frame) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="absolute flex flex-col items-end gap-4 pointer-events-none" style={{ bottom: "clamp(28px, 4vw, 52px)", right: "clamp(28px, 4vw, 52px)", zIndex: 31 }}>
-        {[
-          { num: "200+", label: "Events"  },
-          { num: "50+",  label: "Artists" },
-          { num: "10+",  label: "Years"   },
-        ].map((s) => (
-          <div key={s.label} className="flex items-baseline gap-2">
-            <span className="font-display text-base font-bold" style={{ color: "rgba(255,255,255,0.6)" }}>{s.num}</span>
-            <span className="text-[9px] tracking-[0.25em] uppercase font-sans" style={{ color: "rgba(255,255,255,0.25)" }}>{s.label}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Main text content  */}
-      <div
-        ref={titleWrapRef}
-        className="relative section-padding max-w-7xl mx-auto w-full text-center"
-        style={{ zIndex: 20, display: "none" }}
+        className="absolute right-0 top-1/2 -translate-y-[45%] pointer-events-none select-none overflow-hidden"
+        style={{ zIndex: 0 }}
+        aria-hidden="true"
       >
-        {/* A7 */}
-        <div ref={line1Ref} className="overflow-hidden">
-          <h1 className="font-display font-bold tracking-tight leading-[0.85] text-foreground"
-            style={{ fontSize: "clamp(5rem, 14vw, 12rem)" }}>
-            A7
-          </h1>
-        </div>
-
-        {/* Entertainment */}
-        <div ref={line2Ref} className="overflow-hidden">
-          <p className="font-display font-light text-foreground/90 uppercase leading-none mt-2 tracking-[0.2em]"
-            style={{ fontSize: "clamp(1.5rem, 4.5vw, 4.5rem)" }}>
-            Entertainment
-          </p>
-        </div>
-
-        {/* Red divider */}
-        <div
-          ref={dividerRef}
-          className="mx-auto mt-10 w-16 h-px bg-primary origin-center"
-        />
-
-        {/* Tagline */}
-        <p
-          ref={tagRef}
-          className="mt-6 text-xs md:text-sm font-sans uppercase tracking-[0.35em]"
-          style={{ color: "rgba(255,255,255,0.4)" }}
+        <span
+          className="font-display font-black text-white block leading-none"
+          style={{
+            fontSize: "clamp(14rem, 48vw, 60rem)",
+            opacity: 0.028,
+            letterSpacing: "-0.06em",
+            userSelect: "none",
+            lineHeight: 1,
+          }}
         >
-          Creating experiences that move people
-        </p>
-      </div>
-
-      {/*  Scroll indicator */}
-      <div
-        ref={scrollRef}
-        className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 pointer-events-none"
-        style={{ bottom: "clamp(28px, 4vw, 52px)", zIndex: 31 }}
-      >
-        <span className="text-[9px] tracking-[0.4em] uppercase font-sans" style={{ color: "rgba(255,255,255,0.3)" }}>
-          Scroll
+          A7
         </span>
-        <div className="w-px h-10 bg-gradient-to-b from-white/30 to-transparent" />
+      </div>
+
+      {/* ── Subtle red radial accent — bottom-left corner ── */}
+      <div
+        className="absolute bottom-0 left-0 pointer-events-none"
+        style={{
+          zIndex: 0,
+          width: "clamp(240px, 35vw, 500px)",
+          height: "clamp(240px, 35vw, 500px)",
+          background:
+            "radial-gradient(circle at 0% 100%, rgba(255,0,0,0.09) 0%, transparent 65%)",
+        }}
+      />
+
+      {/* ── Main content ── */}
+      <div
+        className="relative flex flex-col section-padding w-full max-w-7xl mx-auto"
+        style={{ zIndex: 10, minHeight: "100svh" }}
+      >
+        {/* Spacer — gives nav room at the top */}
+        <div style={{ height: "clamp(5rem, 12vh, 9rem)" }} />
+
+        {/* Hero text block */}
+        <div className="flex-1 flex flex-col justify-center">
+
+          {/* Label row */}
+          <div
+            ref={labelRef}
+            className="flex items-center gap-3 mb-8 md:mb-10"
+            style={{ opacity: 0 }}
+          >
+            <div className="w-5 h-px bg-[#FF0000]" />
+            <span
+              className="font-sans uppercase text-white/38"
+              style={{ fontSize: "clamp(0.6rem, 1vw, 0.72rem)", letterSpacing: "0.45em" }}
+            >
+              Est. 2016 · India &amp; UAE
+            </span>
+          </div>
+
+          {/* Headline — 3 lines, staggered */}
+          <div className="overflow-hidden">
+            <div ref={line1Ref} style={{ opacity: 0 }}>
+              <h1
+                className="font-display font-extrabold text-white block leading-[1.04]"
+                style={{ fontSize: "clamp(2.5rem, 7vw, 6.2rem)" }}
+              >
+                India&apos;s Premier
+              </h1>
+            </div>
+          </div>
+          <div className="overflow-hidden">
+            <div ref={line2Ref} style={{ opacity: 0 }}>
+              <p
+                className="font-display font-extrabold text-white block leading-[1.04]"
+                style={{ fontSize: "clamp(2.5rem, 7vw, 6.2rem)" }}
+              >
+                Event &amp; Entertainment
+              </p>
+            </div>
+          </div>
+          <div className="overflow-hidden">
+            <div ref={line3Ref} style={{ opacity: 0 }}>
+              <p
+                className="font-display font-extrabold block leading-[1.04]"
+                style={{ fontSize: "clamp(2.5rem, 7vw, 6.2rem)", color: "#FF0000" }}
+              >
+                Agency.
+              </p>
+            </div>
+          </div>
+
+          {/* Sub copy */}
+          <p
+            ref={subRef}
+            className="mt-7 md:mt-9 text-white/48 font-sans leading-[1.8] max-w-lg"
+            style={{ fontSize: "clamp(0.88rem, 1.5vw, 1rem)", opacity: 0 }}
+          >
+            We produce concerts, manage celebrities, and build brands — delivering
+            end-to-end event management and digital marketing across India and UAE.
+          </p>
+
+          {/* CTA row */}
+          <div
+            ref={ctaRef}
+            className="mt-10 md:mt-12 flex flex-wrap items-center gap-4"
+            style={{ opacity: 0 }}
+          >
+            {/* Primary CTA */}
+            <button
+              data-cursor-hover
+              onClick={() =>
+                document.getElementById("gallery")?.scrollIntoView({ behavior: "smooth" })
+              }
+              className="group relative overflow-hidden bg-white text-black font-sans font-semibold uppercase px-7 py-4 transition-colors duration-300"
+              style={{ fontSize: "clamp(0.62rem, 1vw, 0.7rem)", letterSpacing: "0.22em" }}
+            >
+              <span
+                className="absolute inset-0 bg-[#FF0000] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-350 ease-out"
+                aria-hidden="true"
+              />
+              <span className="relative group-hover:text-white transition-colors duration-350">
+                Explore Our Work
+              </span>
+            </button>
+
+            {/* Ghost CTA */}
+            <button
+              data-cursor-hover
+              onClick={() =>
+                document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })
+              }
+              className="group flex items-center gap-2.5 font-sans font-medium uppercase text-white/50 hover:text-white transition-colors duration-300"
+              style={{ fontSize: "clamp(0.62rem, 1vw, 0.7rem)", letterSpacing: "0.22em" }}
+            >
+              Get in Touch
+              <span className="group-hover:translate-x-1.5 transition-transform duration-300 inline-block">
+                →
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* ── Bottom stats bar ── */}
+        <div
+          ref={statsRef}
+          className="flex flex-wrap items-center gap-x-8 gap-y-3 border-t py-6"
+          style={{ borderColor: "rgba(255,255,255,0.07)", opacity: 0 }}
+        >
+          {[
+            { num: "200+", label: "Events Produced" },
+            { num: "50+",  label: "Artists Managed" },
+            { num: "10+",  label: "Years Experience" },
+            { num: "15M+", label: "Audience Reached" },
+          ].map((s, i) => (
+            <div key={s.label} className="flex items-baseline gap-2">
+              {i > 0 && (
+                <span
+                  className="mr-6 text-white/12 hidden sm:block select-none"
+                  aria-hidden="true"
+                >
+                  ·
+                </span>
+              )}
+              <span
+                className="font-display font-bold text-white/70"
+                style={{ fontSize: "clamp(1rem, 2vw, 1.35rem)" }}
+              >
+                {s.num}
+              </span>
+              <span
+                className="font-sans uppercase text-white/28"
+                style={{ fontSize: "clamp(0.58rem, 0.9vw, 0.68rem)", letterSpacing: "0.22em" }}
+              >
+                {s.label}
+              </span>
+            </div>
+          ))}
+
+          {/* Scroll hint — right-aligned on desktop */}
+          <div className="ml-auto hidden lg:flex items-center gap-2.5 text-white/22">
+            <span
+              className="font-sans uppercase"
+              style={{ fontSize: "9px", letterSpacing: "0.42em" }}
+            >
+              Scroll
+            </span>
+            <div className="w-px h-6 bg-gradient-to-b from-white/22 to-transparent" />
+          </div>
+        </div>
       </div>
     </section>
   );

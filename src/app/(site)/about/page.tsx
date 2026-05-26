@@ -1,5 +1,19 @@
+import type { Metadata } from "next";
 import { HeroScene } from "@/components/scenes/HeroScene";
 import { StoryScene } from "@/components/scenes/StoryScene";
+
+export const metadata: Metadata = {
+  title: "About Us",
+  description:
+    "Learn about A7 Entertainment — a fully integrated event management and digital marketing agency with over a decade of experience crafting impactful experiences across events, entertainment, and digital media.",
+  alternates: { canonical: "https://www.a7entertainment.in/about" },
+  openGraph: {
+    url: "https://www.a7entertainment.in/about",
+    title: "About A7 Entertainment | Our Story & Mission",
+    description:
+      "A fully integrated event and media company with 10+ years of industry experience. We specialize in impactful experiences across events, entertainment, and digital media.",
+  },
+};
 
 export default function About() {
   return (

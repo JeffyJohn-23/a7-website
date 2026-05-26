@@ -177,17 +177,17 @@ export function ContactSection() {
       ref={sectionRef}
       id="contact"
       className="relative w-full bg-white section-padding"
-      style={{ paddingTop: "9rem", paddingBottom: "7rem" }}
+      style={{ paddingTop: "6rem", paddingBottom: "5rem" }}
     >
       <div className="max-w-7xl mx-auto">
-        <div className="reveal-up flex items-center gap-6 mb-20">
+        <div className="reveal-up flex items-center gap-6 mb-12">
           <span className="text-[11px] tracking-[0.5em] uppercase text-[#FF0000] font-sans shrink-0">
             Contact
           </span>
           <div className="flex-1 h-px bg-black/10" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-start mb-32">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-start mb-16">
           <div className="reveal-up">
             <h2 className="font-display text-5xl md:text-6xl lg:text-[5rem] font-bold leading-[1.06] text-[#0a0a0a] mb-8">
               Let&apos;s Create
@@ -217,7 +217,23 @@ export function ContactSection() {
                   +919886112547
                 </span>
               </a>
+              <a
+                href="https://wa.me/919886112547?text=Hi%2C%20I%27d%20like%20to%20discuss%20an%20event."
+                target="_blank"
+                rel="noopener noreferrer"
+                data-cursor-hover
+                className="flex items-center gap-4 group"
+              >
+                <div className="w-8 h-px bg-black/25 group-hover:bg-[#FF0000] group-hover:w-12 transition-all duration-300" />
+                <span className="text-[13px] text-[#2a2a2a] group-hover:text-[#FF0000] transition-colors duration-300 font-medium">
+                  WhatsApp Us →
+                </span>
+              </a>
             </div>
+
+            <p className="mt-8 text-[11px] tracking-[0.15em] uppercase font-sans" style={{ color: "rgba(0,0,0,0.35)" }}>
+              Serving clients across India &amp; UAE
+            </p>
           </div>
 
           <div className="reveal-up">
@@ -295,7 +311,7 @@ export function ContactSection() {
           </div>
         </div>
 
-        <div ref={doodleStrip} className="border-t border-black/10 pt-40 mt-24">
+        <div ref={doodleStrip} className="border-t border-black/10 pt-14 mt-10">
           <p className="text-[10px] tracking-[0.4em] uppercase text-[#1a1a1a] font-sans mb-16 text-center">
             What We Do
           </p>

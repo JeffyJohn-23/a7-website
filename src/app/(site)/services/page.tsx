@@ -1,4 +1,29 @@
+import type { Metadata } from "next";
 import { HeroScene } from "@/components/scenes/HeroScene";
+
+export const metadata: Metadata = {
+  title: "Our Services",
+  description:
+    "A7 Entertainment offers end-to-end event management, celebrity management, brand activations, film promotions, influencer marketing, corporate events, wedding entertainment, and digital marketing services across India and UAE.",
+  keywords: [
+    "event management services India",
+    "celebrity management agency",
+    "brand activation services",
+    "corporate event management India",
+    "wedding entertainment agency",
+    "film promotions India",
+    "influencer marketing services",
+    "digital marketing agency",
+    "stage show production",
+  ],
+  alternates: { canonical: "https://www.a7entertainment.in/services" },
+  openGraph: {
+    url: "https://www.a7entertainment.in/services",
+    title: "Event Management & Marketing Services | A7 Entertainment",
+    description:
+      "End-to-end solutions across entertainment, events, and media. Celebrity management, brand launches, film promotions, corporate events, and more.",
+  },
+};
 
 export default function Services() {
   return (

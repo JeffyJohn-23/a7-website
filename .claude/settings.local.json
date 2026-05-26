@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\JEFFY\\\\A7\\\\a7-website - Copy\\\\\" -Recurse -Depth 2 | Select-Object -Property FullName, PSIsContainer | Format-Table -AutoSize | head -50)",
+      "Bash(npx next *)"
+    ]
+  }
+}

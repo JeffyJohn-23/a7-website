@@ -139,7 +139,7 @@ export function AboutSection() {
             <div className="relative w-full h-full rounded-sm overflow-hidden" style={{ minHeight: '320px' }}>
               <Image
                 src="/gallery/red-silhouettes.jpg"
-                alt="A7 Entertainment event production"
+                alt="Live event production by A7 Entertainment — India's premium event management agency"
                 fill
                 className="object-cover grayscale hover:grayscale-0 transition-all duration-700"
                 sizes="(min-width: 1024px) 33vw, 100vw"
@@ -150,6 +150,23 @@ export function AboutSection() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Why Us differentiators */}
+        <div className="reveal-up grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+          {[
+            { arrow: "→", title: "Proven at Scale", body: "200+ events delivered, including international productions in Dubai, UAE." },
+            { arrow: "→", title: "End-to-End", body: "From concept and talent management to production and digital amplification." },
+            { arrow: "→", title: "Decade of Trust", body: "10+ years building experiences across entertainment, events, and media." },
+          ].map((item) => (
+            <div key={item.title} className="flex items-start gap-4 p-5 border border-black/[0.07] rounded-sm">
+              <span className="text-[#FF0000] font-display text-lg font-bold shrink-0 mt-0.5">{item.arrow}</span>
+              <div>
+                <p className="text-[#0a0a0a] font-semibold text-sm mb-1">{item.title}</p>
+                <p className="text-[#666] text-[13px] leading-[1.7]">{item.body}</p>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Stats */}

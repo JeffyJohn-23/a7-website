@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -74,14 +75,16 @@ export function StoryScene({
         {imageUrl && (
           <div
             ref={imageRef}
-            className={`bg-accent rounded-lg aspect-square overflow-hidden ${
+            className={`relative bg-accent rounded-lg aspect-square overflow-hidden ${
               layout === "right" ? "md:order-1" : "md:order-2"
             }`}
           >
-            <img
+            <Image
               src={imageUrl}
-              alt={title}
-              className="w-full h-full object-cover"
+              alt={`${title} — A7 Entertainment`}
+              fill
+              className="object-cover"
+              sizes="(min-width: 768px) 50vw, 100vw"
             />
           </div>
         )}

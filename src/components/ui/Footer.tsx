@@ -24,7 +24,7 @@ export function Footer() {
             className="h-5 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity duration-200"
           />
           <span className="hidden lg:block text-[10px] tracking-[0.2em] font-sans" style={{ color: "rgba(255,255,255,0.55)" }}>
-            © 2026
+            © {new Date().getFullYear()} · India &amp; UAE
           </span>
         </div>
 

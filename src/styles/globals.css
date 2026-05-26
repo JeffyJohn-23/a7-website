@@ -16,21 +16,17 @@
   --color-foreground: var(--foreground);
 }
 
-/* Consistent layout padding */
+/* Consistent fluid horizontal padding — works from 320px to 4K */
 .section-padding {
-  padding-left: 2rem;
-  padding-right: 2rem;
+  padding-left:  clamp(1.25rem, 5vw, 6rem);
+  padding-right: clamp(1.25rem, 5vw, 6rem);
 }
-@media (min-width: 768px) {
+
+/* Cap very wide viewports so content never exceeds a readable line-width */
+@media (min-width: 2200px) {
   .section-padding {
-    padding-left: 4rem;
-    padding-right: 4rem;
-  }
-}
-@media (min-width: 1280px) {
-  .section-padding {
-    padding-left: 6rem;
-    padding-right: 6rem;
+    padding-left:  max(6rem, calc((100vw - 1400px) / 2));
+    padding-right: max(6rem, calc((100vw - 1400px) / 2));
   }
 }
 
@@ -133,4 +129,37 @@ a, button { cursor: none; }
 .section-line {
   height: 1px;
   background: linear-gradient(90deg, transparent 0%, var(--border) 20%, var(--border) 80%, transparent 100%);
+}
+
+/* ── Responsive safeguards ──────────────────────────────── */
+
+/* Prevent any element from causing horizontal overflow */
+img, video, iframe, svg {
+  max-width: 100%;
+}
+
+/* Touch-target minimum size for interactive elements */
+@media (pointer: coarse) {
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Ultrawide containment — prevents layout from stretching beyond readable bounds */
+@media (min-width: 1800px) {
+  .max-w-7xl { max-width: 1440px; }
+}
+
+/* Very small screens (< 360px) — ensure nothing clips */
+@media (max-width: 360px) {
+  .section-padding {
+    padding-left:  1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Fluid base font size — scales smoothly between 320px and 1920px */
+html {
+  font-size: clamp(14px, 1.1vw + 8px, 17px);
 }

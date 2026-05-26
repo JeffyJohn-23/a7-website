@@ -9,20 +9,8 @@ const AboutSection    = dynamic(() => import("@/components/sections/AboutSection
 const ServicesSection = dynamic(() => import("@/components/sections/ServicesSection").then(m => ({ default: m.ServicesSection })), { ssr: false });
 const GallerySection  = dynamic(() => import("@/components/sections/GallerySection").then(m => ({ default: m.GallerySection })),  { ssr: false });
 const ContactSection  = dynamic(() => import("@/components/sections/ContactSection").then(m => ({ default: m.ContactSection })),  { ssr: false });
+const FAQSection      = dynamic(() => import("@/components/sections/FAQSection").then(m => ({ default: m.FAQSection })),          { ssr: false });
 const Footer          = dynamic(() => import("@/components/ui/Footer").then(m => ({ default: m.Footer })),                        { ssr: false });
-
-function SectionDivider() {
-  return (
-    <div
-      className="section-padding"
-      style={{ paddingTop: "5rem", paddingBottom: "5rem" }}
-    >
-      <div className="max-w-7xl mx-auto">
-        <div className="section-line" />
-      </div>
-    </div>
-  );
-}
 
 export default function Home() {
   return (
@@ -33,6 +21,7 @@ export default function Home() {
         <ServicesSection />
         <GallerySection />
         <ContactSection />
+        <FAQSection />
       </main>
       <Footer />
     </>

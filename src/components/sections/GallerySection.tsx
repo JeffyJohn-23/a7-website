@@ -155,7 +155,7 @@ function ImageSlider({
         >
           <Image
             src={images[activeIdx]}
-            alt={`${title} image ${activeIdx + 1}`}
+            alt={`${title} — ${activeIdx + 1} of ${images.length} — A7 Entertainment`}
             fill
             className="object-cover"
             sizes="528px"

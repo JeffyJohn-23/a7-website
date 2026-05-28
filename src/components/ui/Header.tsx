@@ -3,6 +3,29 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+function A7Mark({ width, height }: { width: number; height: number }) {
+  return (
+    <svg
+      viewBox="0 0 38 26"
+      fill="none"
+      aria-hidden="true"
+      style={{ width, height, display: "block", overflow: "visible" }}
+    >
+      {/* A — white outline via evenodd, two legs */}
+      <path
+        fillRule="evenodd"
+        d="M 1,25 L 11,1 L 21,25 Z M 4,25 L 11,5 L 18,25 Z"
+        fill="rgba(255,255,255,0.88)"
+      />
+      {/* A crossbar spanning the hollow center */}
+      <rect x="5.5" y="14" width="11" height="3.5" fill="rgba(255,255,255,0.88)" />
+      {/* 7 — red, overlaps right leg of A */}
+      <rect x="14" y="1" width="15" height="4.5" fill="#FF0000" />
+      <path d="M 23,5.5 L 29,5.5 L 18,25 L 12,25 Z" fill="#FF0000" />
+    </svg>
+  );
+}
+
 const navLinks = [
   { id: "home",     label: "Home"     },
   { id: "about",    label: "About"    },
@@ -84,22 +107,21 @@ export function Header() {
             borderRadius: "9999px",
           }}
           animate={{
-            paddingLeft:   isExpanded ? "1.125rem" : "0.875rem",
-            paddingRight:  isExpanded ? "1.125rem" : "0.875rem",
+            paddingLeft:   isExpanded ? "1.25rem" : "0.875rem",
+            paddingRight:  isExpanded ? "1.25rem" : "0.875rem",
             paddingTop:    "0.5rem",
             paddingBottom: "0.5rem",
           }}
           transition={{ type: "spring", stiffness: 280, damping: 28 }}
         >
-          {/* A7 logo */}
+          {/* A7 logo mark */}
           <button
             onClick={() => scrollTo("home")}
             data-cursor-hover
-            className="font-display font-black text-[15px] leading-none select-none shrink-0 hover:opacity-70 transition-opacity duration-150"
-            style={{ color: "#FF0000" }}
+            className="flex items-center select-none shrink-0 hover:opacity-70 transition-opacity duration-150 px-3"
             aria-label="Go to top"
           >
-            A7
+            <A7Mark width={30} height={21} />
           </button>
 
           {/* Vertical divider — always visible, separates logo from links */}
@@ -114,8 +136,8 @@ export function Header() {
                 className="overflow-hidden"
               >
                 <div
-                  className="mx-4 h-4 w-px shrink-0"
-                  style={{ background: "rgba(255,255,255,0.14)" }}
+                  className="mx-5 h-4 w-px shrink-0"
+                  style={{ background: "rgba(255,255,255,0.22)" }}
                 />
               </motion.div>
             )}
@@ -133,7 +155,7 @@ export function Header() {
                 className="overflow-hidden"
                 aria-label="Main navigation"
               >
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   {navLinks.map(({ id, label }) => {
                     const isActive = activeSection === id;
                     return (
@@ -186,9 +208,8 @@ export function Header() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="h-9 px-4 flex items-center font-display font-black text-[15px] leading-none"
+          className="h-9 px-4 flex items-center"
           style={{
-            color: "#FF0000",
             background: NAV_BG,
             border: `1px solid ${NAV_BORDER}`,
             backdropFilter: NAV_BLUR,
@@ -197,7 +218,7 @@ export function Header() {
             boxShadow: "0 4px 20px rgba(0,0,0,0.35)",
           }}
         >
-          A7
+          <A7Mark width={28} height={20} />
         </motion.button>
 
         {/* Hamburger */}

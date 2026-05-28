@@ -94,6 +94,26 @@ a, button { cursor: none; }
   animation: marquee 25s linear infinite;
 }
 
+/* Hero spotlight beam pulse */
+@keyframes beam-pulse {
+  0%, 100% { opacity: 0.028; }
+  50%       { opacity: 0.072; }
+}
+
+/* Hero floating particles */
+@keyframes float-up {
+  0%   { transform: translateY(0) scale(1);    opacity: 0; }
+  12%  { opacity: 0.35; }
+  88%  { opacity: 0.18; }
+  100% { transform: translateY(-85vh) scale(0.4); opacity: 0; }
+}
+
+/* Red glow breathe */
+@keyframes glow-breathe {
+  0%, 100% { opacity: 0.75; transform: scale(1); }
+  50%       { opacity: 1;    transform: scale(1.12); }
+}
+
 /* Reveal base states (animated by GSAP) */
 .reveal-up {
   opacity: 0;

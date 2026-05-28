@@ -397,25 +397,49 @@ export function ServicesSection() {
         </div>
       </div>
 
-      {/* Section heading */}
-      <div className="section-padding" style={{ paddingTop: "3.5rem", paddingBottom: "1rem" }}>
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <h2
-              className="font-display font-bold leading-[1.04] text-white"
-              style={{ fontSize: "clamp(2.2rem, 7vw, 5rem)" }}
-            >
-              What We
-              <br />
-              Deliver
-            </h2>
-            <p className="mt-3 text-white/55 font-sans" style={{ fontSize: "clamp(0.85rem, 1.5vw, 1.05rem)" }}>
-              End-to-end solutions across entertainment, events, and media.
-            </p>
+      {/* Section heading — split editorial layout */}
+      <div className="section-padding" style={{ paddingTop: "4rem", paddingBottom: "2rem" }}>
+        <div className="max-w-7xl mx-auto">
+          {/* Label */}
+          <div className="flex items-center gap-6 mb-10">
+            <span className="text-[11px] tracking-[0.5em] uppercase text-white/50 font-sans shrink-0">
+              Services
+            </span>
+            <div className="flex-1 h-px bg-white/15" />
+            <span className="text-[10px] tracking-[0.3em] uppercase text-white/30 font-sans shrink-0">
+              {services.length} disciplines
+            </span>
           </div>
-          <p className="text-[10px] tracking-[0.3em] uppercase text-white/35 font-sans shrink-0 pb-1">
-            {services.length} services
-          </p>
+
+          {/* Heading + editorial statement — 2 col */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20 items-end">
+            <div>
+              <h2
+                className="font-display font-bold leading-[1.04] text-white"
+                style={{ fontSize: "clamp(2.4rem, 7vw, 5.2rem)" }}
+              >
+                What We
+                <br />
+                Deliver
+              </h2>
+            </div>
+
+            <div className="flex flex-col gap-5 pb-1">
+              <p
+                className="font-serif italic text-white/65 leading-[1.6]"
+                style={{ fontSize: "clamp(1rem, 2.2vw, 1.5rem)" }}
+              >
+                &ldquo;End-to-end execution for brands that demand excellence at every stage.&rdquo;
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-8 h-px bg-white/30" />
+                <p className="text-white/40 font-sans" style={{ fontSize: "clamp(0.75rem, 1.2vw, 0.88rem)", lineHeight: 1.7 }}>
+                  From a 500-person gala to a 50,000-person concert —<br className="hidden lg:block" />
+                  every detail, every time.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

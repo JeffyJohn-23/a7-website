@@ -177,19 +177,36 @@ export function ContactSection() {
       ref={sectionRef}
       id="contact"
       className="relative w-full bg-white section-padding"
-      style={{ paddingTop: "6rem", paddingBottom: "5rem" }}
+      style={{ paddingTop: "6rem", paddingBottom: "4rem" }}
     >
       <div className="max-w-7xl mx-auto">
-        <div className="reveal-up flex items-center gap-6 mb-12">
-          <span className="text-[11px] tracking-[0.5em] uppercase text-[#FF0000] font-sans shrink-0">
-            Contact
-          </span>
-          <div className="flex-1 h-px bg-black/10" />
+
+        {/* ── Bold opening philosophy ── */}
+        <div className="reveal-up mb-12 pb-12 border-b border-black/[0.08]">
+          <p
+            className="font-display font-black text-[#0a0a0a] leading-[1.04]"
+            style={{ fontSize: "clamp(2rem, 6vw, 5rem)" }}
+          >
+            Great events don&apos;t
+            <br />
+            happen by accident.
+            <br />
+            <span className="text-[#FF0000]">Let&apos;s be deliberate.</span>
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-start mb-16">
+        {/* ── 2-col grid: section label + heading left, form right ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start mb-12">
           <div className="reveal-up">
-            <h2 className="font-display text-5xl md:text-6xl lg:text-[5rem] font-bold leading-[1.06] text-[#0a0a0a] mb-8">
+            {/* Section label lives inside left column so it aligns with form top */}
+            <div className="flex items-center gap-4 mb-8">
+              <span className="text-[11px] tracking-[0.5em] uppercase text-[#FF0000] font-sans shrink-0">
+                Contact
+              </span>
+              <div className="w-10 h-px bg-black/10" />
+            </div>
+
+            <h2 className="font-display text-4xl md:text-5xl lg:text-[4rem] font-bold leading-[1.06] text-[#0a0a0a] mb-7">
               Let&apos;s Create
               <br />
               Something
@@ -311,8 +328,8 @@ export function ContactSection() {
           </div>
         </div>
 
-        <div ref={doodleStrip} className="border-t border-black/10 pt-14 mt-10">
-          <p className="text-[10px] tracking-[0.4em] uppercase text-[#1a1a1a] font-sans mb-16 text-center">
+        <div ref={doodleStrip} className="border-t border-black/10 pt-8 mt-6">
+          <p className="text-[10px] tracking-[0.4em] uppercase text-[#1a1a1a] font-sans mb-10 text-center">
             What We Do
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10">

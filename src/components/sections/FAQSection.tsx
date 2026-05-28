@@ -45,7 +45,7 @@ export function FAQSection() {
     <section
       id="faq"
       className="relative w-full bg-white section-padding"
-      style={{ paddingTop: "5rem", paddingBottom: "6rem" }}
+      style={{ paddingTop: "2.5rem", paddingBottom: "6rem" }}
     >
       <div className="max-w-7xl mx-auto">
         {/* Label + divider */}
@@ -73,14 +73,40 @@ export function FAQSection() {
             transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
             className="lg:sticky lg:top-28"
           >
-            <h2 className="font-display text-[clamp(2.2rem,5vw,3.6rem)] font-bold leading-[1.06] text-[#0a0a0a] mb-5">
+            {/* Dot motif accent */}
+            <div
+              className="w-12 h-12 mb-8 hidden lg:grid"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: "5px",
+              }}
+              aria-hidden="true"
+            >
+              {Array.from({ length: 16 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-full"
+                  style={{
+                    width: "4px",
+                    height: "4px",
+                    background: i % 5 === 0 ? "#FF0000" : "rgba(0,0,0,0.15)",
+                  }}
+                />
+              ))}
+            </div>
+
+            <h2
+              className="font-display font-bold leading-[1.06] text-[#0a0a0a] mb-5"
+              style={{ fontSize: "clamp(2.4rem, 5.5vw, 4rem)" }}
+            >
               Frequently
               <br />
               Asked
               <br />
               <span className="text-[#FF0000]">Questions</span>
             </h2>
-            <p className="text-[#666] text-[13px] leading-[1.8] max-w-xs">
+            <p className="text-[#666] text-[13px] leading-[1.85] max-w-[16rem]">
               Everything you need to know about working with A7 Entertainment.
             </p>
             <button

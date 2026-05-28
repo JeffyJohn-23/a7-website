@@ -1,12 +1,16 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import Image from "next/image";
+
+const FILTERS = ["All", "Events", "Brand", "Celebrity"] as const;
+type Filter = typeof FILTERS[number];
 
 const projects = [
   {
     id: 1,
+    filter: "Events" as Filter,
     title: "World Tennis League",
     category: "Sports & Live Events",
     year: "2024",
@@ -17,6 +21,7 @@ const projects = [
   },
   {
     id: 2,
+    filter: "Celebrity" as Filter,
     title: "Ben Bhomer",
     category: "Celebrity Management",
     year: "2024",
@@ -27,6 +32,7 @@ const projects = [
   },
   {
     id: 3,
+    filter: "Events" as Filter,
     title: "Dil Se Diwali 2025",
     category: "Festival Production",
     year: "2025",
@@ -37,6 +43,7 @@ const projects = [
   },
   {
     id: 4,
+    filter: "Events" as Filter,
     title: "Dandiya 2025",
     category: "Cultural Experience",
     year: "2025",
@@ -47,6 +54,7 @@ const projects = [
   },
   {
     id: 5,
+    filter: "Brand" as Filter,
     title: "Vesparo Launch",
     category: "Brand Launch",
     year: "2025",
@@ -57,6 +65,7 @@ const projects = [
   },
   {
     id: 6,
+    filter: "Brand" as Filter,
     title: "Dhamree Launch",
     category: "Brand Launch",
     year: "2025",
@@ -67,27 +76,20 @@ const projects = [
   },
 ];
 
-/* ─── ImageSlider — wheel-trapped vertical slide ─────────────── */
+/* ─── ImageSlider ─────────────────────────────────────────────── */
 
 function ImageSlider({
-  images,
-  title,
-  projectNum,
-  totalProjects,
+  images, title, projectNum, totalProjects,
 }: {
-  images: string[];
-  title: string;
-  projectNum: number;
-  totalProjects: number;
+  images: string[]; title: string; projectNum: number; totalProjects: number;
 }) {
   const [activeIdx, setActiveIdx] = useState(0);
-  const [direction, setDirection] = useState<1 | -1>(1); // 1 = slide up (next), -1 = slide down (prev)
-  const panelRef = useRef<HTMLDivElement>(null);
-  const isAnimating = useRef(false);
-  const accumulator = useRef(0);
-  const THRESHOLD = 60;
+  const [direction, setDirection]  = useState<1 | -1>(1);
+  const panelRef     = useRef<HTMLDivElement>(null);
+  const isAnimating  = useRef(false);
+  const accumulator  = useRef(0);
+  const THRESHOLD    = 60;
 
-  // Reset when images prop changes (new project opened)
   useEffect(() => {
     setActiveIdx(0);
     setDirection(1);
@@ -95,19 +97,14 @@ function ImageSlider({
     accumulator.current = 0;
   }, [images]);
 
-  // Trap wheel events — prevent page scroll, drive image transitions
   useEffect(() => {
     const el = panelRef.current;
     if (!el) return;
-
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       e.stopPropagation();
-
       if (isAnimating.current) return;
-
       accumulator.current += e.deltaY;
-
       if (accumulator.current > THRESHOLD) {
         accumulator.current = 0;
         if (activeIdx < images.length - 1) {
@@ -126,7 +123,6 @@ function ImageSlider({
         }
       }
     };
-
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
   }, [activeIdx, images.length]);
@@ -134,64 +130,44 @@ function ImageSlider({
   const slideVariants = {
     enter: (dir: number) => ({ y: dir > 0 ? "100%" : "-100%", opacity: 0 }),
     center: { y: "0%", opacity: 1 },
-    exit: (dir: number) => ({ y: dir > 0 ? "-100%" : "100%", opacity: 0 }),
+    exit:  (dir: number) => ({ y: dir > 0 ? "-100%" : "100%", opacity: 0 }),
   };
 
   return (
-    <div
-      ref={panelRef}
-      className="relative h-[42vh] md:h-full md:w-[50%] flex-shrink-0 bg-black overflow-hidden select-none"
-    >
+    <div ref={panelRef} className="relative h-[42vh] md:h-full md:w-[50%] flex-shrink-0 bg-black overflow-hidden select-none">
       <AnimatePresence initial={false} custom={direction} mode="sync">
         <motion.div
           key={activeIdx}
           custom={direction}
           variants={slideVariants}
-          initial="enter"
-          animate="center"
-          exit="exit"
+          initial="enter" animate="center" exit="exit"
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="absolute inset-0"
         >
           <Image
             src={images[activeIdx]}
-            alt={`${title} — ${activeIdx + 1} of ${images.length} — A7 Entertainment`}
-            fill
-            className="object-cover"
-            sizes="528px"
-            priority={activeIdx === 0}
+            alt={`${title} — ${activeIdx + 1} of ${images.length}`}
+            fill className="object-cover" sizes="528px" priority={activeIdx === 0}
           />
-          {/* Subtle dark gradient at top/bottom for badge contrast */}
           <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/40 to-transparent pointer-events-none" />
           <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
         </motion.div>
       </AnimatePresence>
 
-      {/* Top-left: project counter */}
       <div className="absolute top-4 left-4 z-10">
         <span className="text-[9px] tracking-[0.4em] uppercase text-white/60 font-sans tabular-nums bg-black/50 px-2 py-1 rounded">
           {String(projectNum).padStart(2, "0")} / {String(totalProjects).padStart(2, "0")}
         </span>
       </div>
 
-      {/* Bottom-right: image counter dots */}
       <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-1.5 items-center">
         {images.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => {
-              if (i === activeIdx) return;
-              setDirection(i > activeIdx ? 1 : -1);
-              setActiveIdx(i);
-            }}
-            className={`w-1.5 rounded-full transition-all duration-300 ${
-              i === activeIdx ? "h-5 bg-white" : "h-1.5 bg-white/35 hover:bg-white/60"
-            }`}
+          <button key={i} onClick={() => { if (i === activeIdx) return; setDirection(i > activeIdx ? 1 : -1); setActiveIdx(i); }}
+            className={`w-1.5 rounded-full transition-all duration-300 ${i === activeIdx ? "h-5 bg-white" : "h-1.5 bg-white/35 hover:bg-white/60"}`}
           />
         ))}
       </div>
 
-      {/* Scroll hint — only shows if more images available */}
       {images.length > 1 && (
         <div className="absolute bottom-4 left-4 z-10">
           <span className="text-[8px] tracking-[0.35em] uppercase text-white/30 font-sans">
@@ -203,31 +179,21 @@ function ImageSlider({
   );
 }
 
-/* ─── Project Modal ──────────────────────────────────────────── */
+/* ─── ProjectModal ────────────────────────────────────────────── */
 
-function ProjectModal({
-  projectIndex,
-  onClose,
-  onPrev,
-  onNext,
-}: {
-  projectIndex: number;
-  onClose: () => void;
-  onPrev: () => void;
-  onNext: () => void;
+function ProjectModal({ projectIndex, onClose, onPrev, onNext }: {
+  projectIndex: number; onClose: () => void; onPrev: () => void; onNext: () => void;
 }) {
   const project = projects[projectIndex];
   const isFirst = projectIndex === 0;
-  const isLast = projectIndex === projects.length - 1;
+  const isLast  = projectIndex === projects.length - 1;
 
   useEffect(() => {
-    // Use overflow:hidden only — no position:fixed, so scroll position is preserved
-    // and closing the modal never causes a snap-to-top jump.
-    const prevOverflow = document.documentElement.style.overflow;
+    const prev = document.documentElement.style.overflow;
     document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
     return () => {
-      document.documentElement.style.overflow = prevOverflow;
+      document.documentElement.style.overflow = prev;
       document.body.style.overflow = "";
     };
   }, []);
@@ -236,7 +202,7 @@ function ProjectModal({
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       if ((e.key === "ArrowRight" || e.key === "ArrowDown") && !isLast) onNext();
-      if ((e.key === "ArrowLeft" || e.key === "ArrowUp") && !isFirst) onPrev();
+      if ((e.key === "ArrowLeft"  || e.key === "ArrowUp")   && !isFirst) onPrev();
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -245,9 +211,7 @@ function ProjectModal({
   return (
     <motion.div
       className="fixed inset-0 z-[60] flex items-center justify-center p-0 md:p-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
       <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
@@ -260,178 +224,100 @@ function ProjectModal({
         exit={{ scale: 0.97, opacity: 0, y: 24 }}
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       >
-        {/* LEFT: Wheel-driven image slider — scroll trapped, images slide up/down */}
-        <ImageSlider
-          key={project.id}
-          images={project.images}
-          title={project.title}
-          projectNum={projectIndex + 1}
-          totalProjects={projects.length}
-        />
+        <ImageSlider key={project.id} images={project.images} title={project.title}
+          projectNum={projectIndex + 1} totalProjects={projects.length} />
 
-        {/* RIGHT: Editorial info panel */}
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden" style={{ background: "#EEEBE4" }}>
-
-          {/* ── Top bar: breadcrumb + close ── */}
-          <motion.div
-            className="flex items-center justify-between flex-shrink-0"
+          <motion.div className="flex items-center justify-between flex-shrink-0"
             style={{ padding: "1.5rem 2.5rem" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.05 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.05 }}
           >
-            {/* Breadcrumb */}
             <div className="flex items-center gap-2.5">
               <span className="text-[10px] tracking-[0.35em] uppercase text-black/60 font-sans font-semibold">A7</span>
               <span className="text-black/30 text-[10px] font-sans">/</span>
               <span className="text-[10px] tracking-[0.35em] uppercase text-black/60 font-sans font-semibold">Gallery</span>
               <span className="text-black/30 text-[10px] font-sans">/</span>
               <AnimatePresence mode="wait">
-                <motion.span
-                  key={project.category}
+                <motion.span key={project.category}
                   className="text-[10px] tracking-[0.35em] uppercase text-black/90 font-bold font-sans"
-                  initial={{ opacity: 0, x: 6 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
+                  initial={{ opacity: 0, x: 6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}>
                   {project.category}
                 </motion.span>
               </AnimatePresence>
             </div>
-
-            {/* Close — clean X, no border */}
-            <button
-              onClick={onClose}
-              aria-label="Close"
-              className="flex items-center justify-center w-9 h-9 text-black/60 hover:text-black transition-colors duration-200 flex-shrink-0"
-            >
+            <button onClick={onClose} aria-label="Close"
+              className="flex items-center justify-center w-9 h-9 text-black/60 hover:text-black transition-colors duration-200 flex-shrink-0">
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
                 <path d="M1.5 1.5l10 10M11.5 1.5l-10 10" />
               </svg>
             </button>
           </motion.div>
 
-          {/* ── Animated content area ── */}
           <div className="flex-1 overflow-y-auto overscroll-contain">
-            {/* Content container — generous edge spacing */}
             <div className="w-full" style={{ padding: "1.5rem 2.5rem 3rem" }}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={project.id}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                variants={{
-                  hidden: {},
-                  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
-                  exit: { opacity: 0, transition: { duration: 0.2 } },
-                }}
-              >
-                {/* Category label */}
-                <motion.span
-                  className="text-[11px] tracking-[0.5em] uppercase font-sans font-bold block"
-                  style={{ color: "rgba(0,0,0,0.55)", marginBottom: "1.75rem", marginTop: "0.25rem" }}
+              <AnimatePresence mode="wait">
+                <motion.div key={project.id} initial="hidden" animate="visible" exit="exit"
                   variants={{
-                    hidden: { opacity: 0, y: 10 },
-                    visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
+                    hidden: {},
+                    visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+                    exit: { opacity: 0, transition: { duration: 0.2 } },
                   }}
                 >
-                  {project.category}
-                </motion.span>
+                  <motion.span className="text-[11px] tracking-[0.5em] uppercase font-sans font-bold block"
+                    style={{ color: "rgba(0,0,0,0.55)", marginBottom: "1.75rem", marginTop: "0.25rem" }}
+                    variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } } }}>
+                    {project.category}
+                  </motion.span>
 
-                {/* ── Large serif italic title — word-by-word reveal ── */}
-                <div style={{ marginBottom: "2rem" }}>
-                  {project.title.split(" ").map((word, i) => (
-                    <div key={i} className="overflow-hidden inline-block mr-[0.25em] last:mr-0">
-                      <motion.span
-                        className="font-serif italic font-bold text-black leading-[1.05] inline-block"
-                        style={{ fontSize: "clamp(2.5rem, 5.5vw, 4rem)" }}
-                        variants={{
-                          hidden: { y: "110%", opacity: 0 },
-                          visible: {
-                            y: "0%",
-                            opacity: 1,
-                            transition: { duration: 0.65, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] },
-                          },
-                        }}
-                      >
-                        {word}
-                      </motion.span>
-                    </div>
-                  ))}
-                </div>
+                  <div style={{ marginBottom: "2rem" }}>
+                    {project.title.split(" ").map((word, i) => (
+                      <div key={i} className="overflow-hidden inline-block mr-[0.25em] last:mr-0">
+                        <motion.span className="font-serif italic font-bold text-black leading-[1.05] inline-block"
+                          style={{ fontSize: "clamp(2.5rem, 5.5vw, 4rem)" }}
+                          variants={{ hidden: { y: "110%", opacity: 0 }, visible: { y: "0%", opacity: 1, transition: { duration: 0.65, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] } } }}>
+                          {word}
+                        </motion.span>
+                      </div>
+                    ))}
+                  </div>
 
-                {/* ── Thin red rule ── */}
-                <motion.div
-                  className="h-px flex-shrink-0"
-                  style={{ background: "#FF0000", width: "2.5rem", marginBottom: "2rem" }}
-                  variants={{
-                    hidden: { scaleX: 0, originX: 0 },
-                    visible: { scaleX: 1, originX: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-                  }}
-                />
+                  <motion.div className="h-px flex-shrink-0"
+                    style={{ background: "#FF0000", width: "2.5rem", marginBottom: "2rem" }}
+                    variants={{ hidden: { scaleX: 0, originX: 0 }, visible: { scaleX: 1, originX: 0, transition: { duration: 0.5 } } }} />
 
-                {/* ── Description ── */}
-                <motion.p
-                  className="font-sans font-normal"
-                  style={{ fontSize: "15px", lineHeight: 1.85, color: "rgba(0,0,0,0.72)", marginBottom: "2.5rem", textAlign: "left" }}
-                  variants={{
-                    hidden: { opacity: 0, y: 14 },
-                    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-                  }}
-                >
-                  {project.description}
-                </motion.p>
+                  <motion.p className="font-sans font-normal"
+                    style={{ fontSize: "15px", lineHeight: 1.85, color: "rgba(0,0,0,0.72)", marginBottom: "2.5rem" }}
+                    variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }}>
+                    {project.description}
+                  </motion.p>
 
-                {/* ── Metadata ── */}
-                <motion.div
-                  className="space-y-2.5"
-                  variants={{
-                    hidden: { opacity: 0 },
-                    visible: { opacity: 1, transition: { duration: 0.4, ease: "easeOut" } },
-                  }}
-                >
-                  {[
-                    { label: "Date", value: project.date },
-                    { label: "Place", value: project.place },
-                  ].map(({ label, value }) => (
-                    <div key={label} className="flex items-baseline" style={{ gap: "1.5rem" }}>
-                      <span className="font-sans font-bold flex-shrink-0" style={{ fontSize: "10px", letterSpacing: "0.4em", textTransform: "uppercase", color: "rgba(0,0,0,0.4)", width: "3.5rem" }}>
-                        {label}
-                      </span>
-                      <span className="font-sans font-semibold" style={{ fontSize: "13px", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(0,0,0,0.75)" }}>
-                        {value}
-                      </span>
-                    </div>
-                  ))}
+                  <motion.div className="space-y-2.5"
+                    variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.4 } } }}>
+                    {[{ label: "Date", value: project.date }, { label: "Place", value: project.place }].map(({ label, value }) => (
+                      <div key={label} className="flex items-baseline" style={{ gap: "1.5rem" }}>
+                        <span className="font-sans font-bold flex-shrink-0" style={{ fontSize: "10px", letterSpacing: "0.4em", textTransform: "uppercase", color: "rgba(0,0,0,0.4)", width: "3.5rem" }}>{label}</span>
+                        <span className="font-sans font-semibold" style={{ fontSize: "13px", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(0,0,0,0.75)" }}>{value}</span>
+                      </div>
+                    ))}
+                  </motion.div>
                 </motion.div>
-              </motion.div>
-            </AnimatePresence>
+              </AnimatePresence>
             </div>
           </div>
 
-          {/* ── Bottom: prev / next ── */}
           <div className="flex-shrink-0 flex items-center justify-between" style={{ borderTop: "1px solid rgba(0,0,0,0.12)", padding: "1.25rem 2.5rem" }}>
-            <button
-              onClick={onPrev}
-              disabled={isFirst}
-              className={`group flex items-center gap-3 transition-all duration-200 ${isFirst ? "opacity-20 cursor-not-allowed" : "opacity-70 hover:opacity-100"}`}
-            >
+            <button onClick={onPrev} disabled={isFirst}
+              className={`group flex items-center gap-3 transition-all duration-200 ${isFirst ? "opacity-20 cursor-not-allowed" : "opacity-70 hover:opacity-100"}`}>
               <svg width="20" height="10" viewBox="0 0 20 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className="text-black transition-transform duration-200 group-hover:-translate-x-1">
                 <path d="M7 1L1 5l6 4M1 5h18" />
               </svg>
-              <span className="text-[10px] tracking-[0.35em] uppercase font-sans text-black font-semibold">Prev Project</span>
+              <span className="text-[10px] tracking-[0.35em] uppercase font-sans text-black font-semibold">Prev</span>
             </button>
-
             <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "#FF0000" }} />
-
-            <button
-              onClick={onNext}
-              disabled={isLast}
-              className={`group flex items-center gap-3 transition-all duration-200 ${isLast ? "opacity-20 cursor-not-allowed" : "opacity-70 hover:opacity-100"}`}
-            >
-              <span className="text-[10px] tracking-[0.35em] uppercase font-sans text-black font-semibold">Next Project</span>
+            <button onClick={onNext} disabled={isLast}
+              className={`group flex items-center gap-3 transition-all duration-200 ${isLast ? "opacity-20 cursor-not-allowed" : "opacity-70 hover:opacity-100"}`}>
+              <span className="text-[10px] tracking-[0.35em] uppercase font-sans text-black font-semibold">Next</span>
               <svg width="20" height="10" viewBox="0 0 20 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className="text-black transition-transform duration-200 group-hover:translate-x-1">
                 <path d="M13 1l6 4-6 4M19 5H1" />
               </svg>
@@ -443,101 +329,216 @@ function ProjectModal({
   );
 }
 
+/* ─── GallerySection ──────────────────────────────────────────── */
+
 export function GallerySection() {
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [hoveredProject, setHoveredProject] = useState<(typeof projects)[number] | null>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [isTouch, setIsTouch] = useState(false);
+  const [activeFilter,    setActiveFilter]    = useState<Filter>("All");
+  const [activeIndex,     setActiveIndex]     = useState<number | null>(null);
+  const [hoveredProject,  setHoveredProject]  = useState<typeof projects[number] | null>(null);
+  const [mousePos,        setMousePos]        = useState({ x: 0, y: 0 });
+  const [isTouch,         setIsTouch]         = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
-  const PREVIEW_W = 208; // px
-  const PREVIEW_H = 144; // px
+  const PREVIEW_W = 208;
+  const PREVIEW_H = 144;
 
-  // Detect touch-only devices — disable hover preview on them
   useEffect(() => {
-    setIsTouch(window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+    setIsTouch(window.matchMedia("(hover: none) and (pointer: coarse)").matches);
   }, []);
 
-  const openProject = useCallback((idx: number) => setActiveIndex(idx), []);
-  const closeViewer = useCallback(() => setActiveIndex(null), []);
-  const goPrev = useCallback(() => setActiveIndex((p) => (p !== null && p > 0 ? p - 1 : p)), []);
-  const goNext = useCallback(() => setActiveIndex((p) => (p !== null && p < projects.length - 1 ? p + 1 : p)), []);
+  const filtered = activeFilter === "All"
+    ? projects
+    : projects.filter((p) => p.filter === activeFilter);
 
-  // Clamp preview within the section's current visible area (all in viewport coords → fixed positioning)
+  const openProject  = useCallback((originalIdx: number) => setActiveIndex(originalIdx), []);
+  const closeViewer  = useCallback(() => setActiveIndex(null), []);
+  const goPrev       = useCallback(() => setActiveIndex((p) => (p !== null && p > 0 ? p - 1 : p)), []);
+  const goNext       = useCallback(() => setActiveIndex((p) => (p !== null && p < projects.length - 1 ? p + 1 : p)), []);
+
   const getPreviewPos = () => {
     const rawX = mousePos.x + 20;
     const rawY = mousePos.y - PREVIEW_H / 2;
     if (!sectionRef.current) return { x: rawX, y: rawY };
     const rect = sectionRef.current.getBoundingClientRect();
-    const clampedX = Math.min(Math.max(rawX, rect.left + 8), rect.right - PREVIEW_W - 8);
-    const clampedY = Math.min(Math.max(rawY, rect.top + 8), rect.bottom - PREVIEW_H - 8);
-    return { x: clampedX, y: clampedY };
+    return {
+      x: Math.min(Math.max(rawX, rect.left + 8), rect.right - PREVIEW_W - 8),
+      y: Math.min(Math.max(rawY, rect.top + 8), rect.bottom - PREVIEW_H - 8),
+    };
   };
-
   const previewPos = getPreviewPos();
 
   return (
-    <section ref={sectionRef} id="gallery" className="relative w-full min-h-screen section-padding" style={{ paddingTop: "8rem", paddingBottom: "7rem" }}>
+    <section
+      ref={sectionRef}
+      id="gallery"
+      className="relative w-full min-h-screen section-padding"
+      style={{ paddingTop: "8rem", paddingBottom: "7rem" }}
+    >
       <div className="max-w-7xl mx-auto">
-        <div style={{ marginBottom: "5rem" }}>
-          <h2 className="font-display text-4xl md:text-6xl lg:text-[5rem] font-bold leading-[1.05] text-white">
-            Our<br />Projects
-          </h2>
+
+        {/* ── Section header ── */}
+        <div className="mb-16">
+          {/* Label */}
+          <motion.div
+            className="flex items-center gap-6 mb-10"
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
+            <span className="text-[11px] tracking-[0.5em] uppercase text-[#FF0000] font-sans shrink-0">
+              Our Work
+            </span>
+            <div className="flex-1 h-px bg-white/10" />
+          </motion.div>
+
+          {/* Heading + philosophy split */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 items-end">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+            >
+              <h2
+                className="font-display font-bold leading-[1.04] text-white"
+                style={{ fontSize: "clamp(2.8rem, 7vw, 5.5rem)" }}
+              >
+                Projects That
+                <br />
+                <span className="text-[#FF0000]">Moved People.</span>
+              </h2>
+            </motion.div>
+
+            <motion.p
+              className="font-sans text-white/35 max-w-xs text-right hidden lg:block"
+              style={{ fontSize: "clamp(0.78rem, 1.2vw, 0.9rem)", lineHeight: 1.8 }}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }}
+            >
+              From intimate brand launches to<br />50,000-person spectacles —
+              <br />every project, executed with intent.
+            </motion.p>
+          </div>
         </div>
 
-        <div>
-          {projects.map((project, idx) => (
-            <motion.div
-              key={project.id}
-              onClick={() => openProject(idx)}
-              onMouseEnter={isTouch ? undefined : () => setHoveredProject(project)}
-              onMouseLeave={isTouch ? undefined : () => setHoveredProject(null)}
-              onMouseMove={isTouch ? undefined : (e) => setMousePos({ x: e.clientX, y: e.clientY })}
-              className="group border-t border-white/[0.1] transition-colors duration-300 hover:bg-white/[0.04] cursor-pointer"
-              style={{ paddingTop: "1.75rem", paddingBottom: "1.75rem" }}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.5, delay: idx * 0.06 }}
-            >
-              <div className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[3rem_1fr_1fr_auto] items-center gap-4 md:gap-8">
-                <span className="text-sm text-white/30 group-hover:text-primary transition-colors duration-500 font-sans tabular-nums">
-                  {String(project.id).padStart(2, "0")}
-                </span>
-                <h3 className="font-display text-lg md:text-2xl lg:text-3xl font-bold leading-tight text-white/70 group-hover:text-white transition-colors duration-300">
-                  {project.title}
-                </h3>
-                <span className="hidden md:block text-sm text-white/40 group-hover:text-white/70 transition-colors duration-300">
-                  {project.category}
-                </span>
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-white/30 group-hover:text-white/55 transition-colors duration-300 tabular-nums">{project.year}</span>
-                  <svg className="w-4 h-4 text-white/30 group-hover:text-primary transition-all duration-500 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+        {/* ── Filter tabs ── */}
+        <motion.div
+          className="flex items-center gap-1 mb-12"
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
+          <LayoutGroup id="gallery-filter">
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                data-cursor-hover
+                onClick={() => setActiveFilter(f)}
+                className="relative px-5 py-2.5 font-sans transition-colors duration-200"
+                style={{
+                  fontSize: "clamp(0.62rem, 1vw, 0.72rem)",
+                  letterSpacing: "0.28em",
+                  textTransform: "uppercase",
+                  color: activeFilter === f ? "#FFFFFF" : "rgba(255,255,255,0.32)",
+                }}
+              >
+                {f}
+                {activeFilter === f && (
+                  <motion.div
+                    layoutId="filter-underline"
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[1.5px] rounded-full bg-[#FF0000]"
+                    style={{ width: "1.2rem" }}
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </button>
+            ))}
+          </LayoutGroup>
+
+          {/* Live count */}
+          <span
+            className="ml-auto font-sans text-white/20 tabular-nums"
+            style={{ fontSize: "clamp(0.6rem, 0.9vw, 0.65rem)", letterSpacing: "0.2em" }}
+          >
+            {filtered.length} / {projects.length}
+          </span>
+        </motion.div>
+
+        {/* ── Project list — animated filter ── */}
+        <div className="relative">
+          <AnimatePresence mode="popLayout">
+            {filtered.map((project, displayIdx) => {
+              const originalIdx = projects.findIndex((p) => p.id === project.id);
+              return (
+                <motion.div
+                  key={project.id}
+                  layout
+                  onClick={() => openProject(originalIdx)}
+                  onMouseEnter={isTouch ? undefined : () => setHoveredProject(project)}
+                  onMouseLeave={isTouch ? undefined : () => setHoveredProject(null)}
+                  onMouseMove={isTouch ? undefined : (e) => setMousePos({ x: e.clientX, y: e.clientY })}
+                  className="group border-t border-white/[0.1] transition-colors duration-300 hover:bg-white/[0.035] cursor-pointer"
+                  style={{ paddingTop: "1.75rem", paddingBottom: "1.75rem" }}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8, transition: { duration: 0.18 } }}
+                  transition={{ duration: 0.32, delay: displayIdx * 0.05, ease: "easeOut" }}
+                >
+                  <div className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[3rem_1fr_1fr_auto] items-center gap-4 md:gap-8">
+                    <span className="text-sm text-white/30 group-hover:text-[#FF0000] transition-colors duration-400 font-sans tabular-nums">
+                      {String(originalIdx + 1).padStart(2, "0")}
+                    </span>
+                    <h3 className="font-display text-lg md:text-2xl lg:text-3xl font-bold leading-tight text-white/70 group-hover:text-white transition-colors duration-300">
+                      {project.title}
+                    </h3>
+                    <span className="hidden md:block text-sm text-white/35 group-hover:text-white/60 transition-colors duration-300">
+                      {project.category}
+                    </span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm text-white/25 group-hover:text-white/50 transition-colors duration-300 tabular-nums">
+                        {project.year}
+                      </span>
+                      <svg className="w-4 h-4 text-white/25 group-hover:text-[#FF0000] transition-all duration-400 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                  {/* Thin red bottom line — draws in on hover */}
+                  <div
+                    className="mt-4 h-px bg-[#FF0000] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"
+                    style={{ maxWidth: "4rem" }}
+                    aria-hidden="true"
+                  />
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
           <div className="border-t border-white/[0.1]" />
         </div>
 
+        {/* Hover image preview */}
         <AnimatePresence mode="wait">
           {hoveredProject && !isTouch && (
             <motion.div
               className="fixed z-40 pointer-events-none rounded-xl overflow-hidden"
               style={{ left: previewPos.x, top: previewPos.y, width: PREVIEW_W, height: PREVIEW_H }}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.88 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
+              exit={{ opacity: 0, scale: 0.88 }}
               transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
             >
               <Image src={hoveredProject.images[0]} alt={hoveredProject.title} fill className="object-cover" sizes="208px" />
+              <div className="absolute inset-0 border border-white/10 rounded-xl pointer-events-none" />
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
+      {/* Modal */}
       <AnimatePresence>
         {activeIndex !== null && (
           <ProjectModal projectIndex={activeIndex} onClose={closeViewer} onPrev={goPrev} onNext={goNext} />

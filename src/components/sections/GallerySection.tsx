@@ -228,8 +228,7 @@ function ProjectModal({ projectIndex, onClose, onPrev, onNext }: {
           projectNum={projectIndex + 1} totalProjects={projects.length} />
 
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden" style={{ background: "#EEEBE4" }}>
-          <motion.div className="flex items-center justify-between flex-shrink-0"
-            style={{ padding: "1.5rem 2.5rem" }}
+          <motion.div className="flex items-center justify-between flex-shrink-0 px-4 py-4 md:px-10 md:py-6"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.05 }}
           >
             <div className="flex items-center gap-2.5">
@@ -255,7 +254,7 @@ function ProjectModal({ projectIndex, onClose, onPrev, onNext }: {
           </motion.div>
 
           <div className="flex-1 overflow-y-auto overscroll-contain">
-            <div className="w-full" style={{ padding: "1.5rem 2.5rem 3rem" }}>
+            <div className="w-full px-4 pt-3 pb-8 md:px-10 md:pt-6 md:pb-12">
               <AnimatePresence mode="wait">
                 <motion.div key={project.id} initial="hidden" animate="visible" exit="exit"
                   variants={{
@@ -274,7 +273,7 @@ function ProjectModal({ projectIndex, onClose, onPrev, onNext }: {
                     {project.title.split(" ").map((word, i) => (
                       <div key={i} className="overflow-hidden inline-block mr-[0.25em] last:mr-0">
                         <motion.span className="font-serif italic font-bold text-black leading-[1.05] inline-block"
-                          style={{ fontSize: "clamp(2.5rem, 5.5vw, 4rem)" }}
+                          style={{ fontSize: "clamp(1.8rem, 5.5vw, 4rem)" }}
                           variants={{ hidden: { y: "110%", opacity: 0 }, visible: { y: "0%", opacity: 1, transition: { duration: 0.65, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] } } }}>
                           {word}
                         </motion.span>
@@ -306,7 +305,7 @@ function ProjectModal({ projectIndex, onClose, onPrev, onNext }: {
             </div>
           </div>
 
-          <div className="flex-shrink-0 flex items-center justify-between" style={{ borderTop: "1px solid rgba(0,0,0,0.12)", padding: "1.25rem 2.5rem" }}>
+          <div className="flex-shrink-0 flex items-center justify-between border-t border-black/[0.12] px-4 py-3 md:px-10 md:py-5">
             <button onClick={onPrev} disabled={isFirst}
               className={`group flex items-center gap-3 transition-all duration-200 ${isFirst ? "opacity-20 cursor-not-allowed" : "opacity-70 hover:opacity-100"}`}>
               <svg width="20" height="10" viewBox="0 0 20 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className="text-black transition-transform duration-200 group-hover:-translate-x-1">

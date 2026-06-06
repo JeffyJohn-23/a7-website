@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import gsap from "gsap";
 import { AnimatePresence, motion } from "framer-motion";
 import { PageLoader } from "@/components/ui/PageLoader";
@@ -123,22 +122,6 @@ export function HomeHero() {
         className="relative w-full flex flex-col overflow-hidden"
         style={{ minHeight: "100svh", background: "#000000" }}
       >
-        {/* ── Logo watermark — right-anchored, 4% opacity ── */}
-        <div
-          className="absolute right-0 bottom-0 pointer-events-none select-none"
-          style={{ zIndex: 0, width: "clamp(28rem, 52vw, 72rem)" }}
-          aria-hidden="true"
-        >
-          <Image
-            src="/logo-white.png"
-            alt=""
-            width={1200}
-            height={800}
-            priority={false}
-            style={{ opacity: 0.04, width: "100%", height: "auto", objectFit: "contain" }}
-          />
-        </div>
-
         {/* ── Stage spotlight beams ── */}
         <div
           className="absolute inset-0 pointer-events-none overflow-hidden"
@@ -228,7 +211,7 @@ export function HomeHero() {
               <div ref={line1Ref} style={{ opacity: 0 }}>
                 <h1
                   className="font-display font-extrabold text-white block leading-[1.04]"
-                  style={{ fontSize: "clamp(2.5rem, 7vw, 6.2rem)" }}
+                  style={{ fontSize: "clamp(1.4rem, 6vw, 6.2rem)" }}
                 >
                   India&apos;s Premier
                 </h1>
@@ -238,7 +221,7 @@ export function HomeHero() {
             {/* Line 2 — rotating words (Strawberry Group-style clip reveal) */}
             <div
               className="overflow-hidden"
-              style={{ height: "clamp(2.6rem, 7.4vw, 6.5rem)" }}
+              style={{ height: "clamp(1.5rem, 6.3vw, 6.5rem)" }}
             >
               <div ref={rotateRef} style={{ opacity: 0, height: "100%" }}>
                 <AnimatePresence mode="wait">
@@ -248,8 +231,8 @@ export function HomeHero() {
                     animate={{ y: "0%" }}
                     exit={{ y: "-100%" }}
                     transition={{ duration: 0.52, ease: EASE }}
-                    className="font-display font-extrabold text-white block leading-[1.04]"
-                    style={{ fontSize: "clamp(2.5rem, 7vw, 6.2rem)" }}
+                    className="font-display font-extrabold text-white block leading-[1.04] whitespace-nowrap"
+                    style={{ fontSize: "clamp(1.4rem, 6vw, 6.2rem)" }}
                   >
                     {HERO_WORDS[wordIndex]}
                   </motion.p>
@@ -262,7 +245,7 @@ export function HomeHero() {
               <div ref={line3Ref} style={{ opacity: 0 }}>
                 <p
                   className="font-display font-extrabold block leading-[1.04]"
-                  style={{ fontSize: "clamp(2.5rem, 7vw, 6.2rem)", color: "#FF0000" }}
+                  style={{ fontSize: "clamp(1.4rem, 6vw, 6.2rem)", color: "#FF0000" }}
                 >
                   Agency.
                 </p>
@@ -272,8 +255,8 @@ export function HomeHero() {
             {/* Sub copy */}
             <p
               ref={subRef}
-              className="mt-7 md:mt-9 text-white/48 font-sans leading-[1.8] max-w-lg"
-              style={{ fontSize: "clamp(0.88rem, 1.5vw, 1rem)", opacity: 0 }}
+              className="mt-5 md:mt-9 text-white/48 font-sans leading-[1.8] max-w-lg"
+              style={{ fontSize: "clamp(0.82rem, 1.5vw, 1rem)", opacity: 0 }}
             >
               We produce concerts, manage celebrities, and build brands — delivering
               end-to-end event management and digital marketing across India and UAE.
@@ -282,7 +265,7 @@ export function HomeHero() {
             {/* CTA row */}
             <div
               ref={ctaRef}
-              className="mt-10 md:mt-12 flex flex-wrap items-center gap-4"
+              className="mt-7 md:mt-12 flex flex-wrap items-center gap-4"
               style={{ opacity: 0 }}
             >
               <button

@@ -184,12 +184,12 @@ function ServiceCard({
       ref={container}
       style={{
         height: "calc(100vh - 280px)",
-        minHeight: "400px",
+        minHeight: "clamp(320px, 50vh, 600px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         position: "sticky",
-        top: "clamp(40px, 8vh, 100px)",
+        top: "clamp(56px, 8vh, 100px)",
       }}
     >
       <motion.div

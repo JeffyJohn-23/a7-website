@@ -184,8 +184,8 @@ export function ContactSection() {
         {/* ── Bold opening philosophy ── */}
         <div className="reveal-up mb-12 pb-12 border-b border-black/[0.08]">
           <p
-            className="font-display font-black text-[#0a0a0a] leading-[1.04]"
-            style={{ fontSize: "clamp(2rem, 6vw, 5rem)" }}
+            className="font-display font-black text-[#0a0a0a] leading-[1.08]"
+            style={{ fontSize: "clamp(1.6rem, 6vw, 5rem)" }}
           >
             Great events don&apos;t
             <br />
@@ -206,7 +206,7 @@ export function ContactSection() {
               <div className="w-10 h-px bg-black/10" />
             </div>
 
-            <h2 className="font-display text-4xl md:text-5xl lg:text-[4rem] font-bold leading-[1.06] text-[#0a0a0a] mb-7">
+            <h2 className="font-display font-bold leading-[1.06] text-[#0a0a0a] mb-7" style={{ fontSize: "clamp(2rem, 5.5vw, 4rem)" }}>
               Let&apos;s Create
               <br />
               Something

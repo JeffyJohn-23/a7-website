@@ -2,29 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
-function A7Mark({ width, height }: { width: number; height: number }) {
-  return (
-    <svg
-      viewBox="0 0 38 26"
-      fill="none"
-      aria-hidden="true"
-      style={{ width, height, display: "block", overflow: "visible" }}
-    >
-      {/* A — white outline via evenodd, two legs */}
-      <path
-        fillRule="evenodd"
-        d="M 1,25 L 11,1 L 21,25 Z M 4,25 L 11,5 L 18,25 Z"
-        fill="rgba(255,255,255,0.88)"
-      />
-      {/* A crossbar spanning the hollow center */}
-      <rect x="5.5" y="14" width="11" height="3.5" fill="rgba(255,255,255,0.88)" />
-      {/* 7 — red, overlaps right leg of A */}
-      <rect x="14" y="1" width="15" height="4.5" fill="#FF0000" />
-      <path d="M 23,5.5 L 29,5.5 L 18,25 L 12,25 Z" fill="#FF0000" />
-    </svg>
-  );
-}
+import Image from "next/image";
 
 const navLinks = [
   { id: "home",     label: "Home"     },
@@ -91,137 +69,133 @@ export function Header() {
     <>
       {/* ── Desktop nav ──────────────────────────────────────── */}
       <motion.header
-        className="fixed top-5 right-5 z-50 hidden md:block pointer-events-none"
+        className="fixed top-5 right-5 z-50 hidden md:flex items-center gap-2 pointer-events-none"
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.65, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
       >
-        <motion.div
-          className="flex items-center gap-0 pointer-events-auto"
+        {/* Logo — circular liquid glass frame, image fills edge-to-edge */}
+        <button
+          onClick={() => scrollTo("home")}
+          data-cursor-hover
+          aria-label="Go to top"
+          className="pointer-events-auto select-none shrink-0 rounded-full overflow-hidden hover:opacity-80 transition-opacity duration-150"
           style={{
-            background: NAV_BG,
+            width: "44px",
+            height: "44px",
             border: `1px solid ${NAV_BORDER}`,
             backdropFilter: NAV_BLUR,
             WebkitBackdropFilter: NAV_BLUR,
             boxShadow: "0 4px 24px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.04) inset",
-            borderRadius: "9999px",
           }}
-          animate={{
-            paddingLeft:   isExpanded ? "1.25rem" : "0.875rem",
-            paddingRight:  isExpanded ? "1.25rem" : "0.875rem",
-            paddingTop:    "0.5rem",
-            paddingBottom: "0.5rem",
-          }}
-          transition={{ type: "spring", stiffness: 280, damping: 28 }}
         >
-          {/* A7 logo mark */}
-          <button
-            onClick={() => scrollTo("home")}
-            data-cursor-hover
-            className="flex items-center select-none shrink-0 hover:opacity-70 transition-opacity duration-150 px-3"
-            aria-label="Go to top"
-          >
-            <A7Mark width={30} height={21} />
-          </button>
+          <Image
+            src="/logo-icon.png"
+            alt="A7 Entertainment"
+            width={44}
+            height={44}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        </button>
 
-          {/* Vertical divider — always visible, separates logo from links */}
-          <AnimatePresence initial={false}>
-            {isExpanded && (
-              <motion.div
-                key="divider"
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: "auto" }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{ type: "spring", stiffness: 280, damping: 28 }}
-                className="overflow-hidden"
-              >
-                <div
-                  className="mx-5 h-4 w-px shrink-0"
-                  style={{ background: "rgba(255,255,255,0.22)" }}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Nav links — collapse on scroll-down */}
-          <AnimatePresence initial={false}>
-            {isExpanded && (
-              <motion.nav
-                key="nav-links"
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: "auto", opacity: 1 }}
-                exit={{ width: 0, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 280, damping: 28 }}
-                className="overflow-hidden"
+        {/* Glass nav pill — hides when collapsed */}
+        <AnimatePresence initial={false}>
+          {isExpanded && (
+            <motion.div
+              key="glass-pill"
+              className="pointer-events-auto overflow-hidden"
+              style={{
+                background: NAV_BG,
+                border: `1px solid ${NAV_BORDER}`,
+                backdropFilter: NAV_BLUR,
+                WebkitBackdropFilter: NAV_BLUR,
+                boxShadow: "0 4px 24px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.04) inset",
+                borderRadius: "9999px",
+                height: "44px",
+              }}
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: "auto", opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 280, damping: 28 }}
+            >
+              <nav
+                className="flex items-center h-full"
+                style={{ padding: "0 16px", gap: "4px" }}
                 aria-label="Main navigation"
               >
-                <div className="flex items-center gap-1.5">
-                  {navLinks.map(({ id, label }) => {
-                    const isActive = activeSection === id;
-                    return (
-                      <button
-                        key={id}
-                        onClick={() => scrollTo(id)}
-                        data-cursor-hover
-                        className="relative h-8 px-4 flex items-center justify-center font-sans whitespace-nowrap transition-colors duration-200"
-                        style={{
-                          fontSize: "11px",
-                          letterSpacing: "0.18em",
-                          textTransform: "uppercase",
-                          color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.45)",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isActive)
-                            (e.currentTarget as HTMLButtonElement).style.color =
-                              "rgba(255,255,255,0.78)";
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isActive)
-                            (e.currentTarget as HTMLButtonElement).style.color =
-                              "rgba(255,255,255,0.45)";
-                        }}
-                      >
-                        {label}
-                        {isActive && (
-                          <motion.span
-                            layoutId="nav-active-bar"
-                            className="absolute bottom-[3px] left-1/2 -translate-x-1/2 h-[1.5px] rounded-full"
-                            style={{ width: "1.1rem", backgroundColor: "#FF0000" }}
-                            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                          />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </motion.nav>
-            )}
-          </AnimatePresence>
-        </motion.div>
+                {navLinks.map(({ id, label }) => {
+                  const isActive = activeSection === id;
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => scrollTo(id)}
+                      data-cursor-hover
+                      className="relative h-full flex items-center justify-center font-sans whitespace-nowrap transition-colors duration-200"
+                      style={{
+                        padding: "0 16px",
+                        fontSize: "11px",
+                        letterSpacing: "0.18em",
+                        textTransform: "uppercase",
+                        color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.45)",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive)
+                          (e.currentTarget as HTMLButtonElement).style.color =
+                            "rgba(255,255,255,0.78)";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive)
+                          (e.currentTarget as HTMLButtonElement).style.color =
+                            "rgba(255,255,255,0.45)";
+                      }}
+                    >
+                      {label}
+                      {isActive && (
+                        <motion.span
+                          layoutId="nav-active-bar"
+                          className="absolute bottom-[5px] left-1/2 -translate-x-1/2 h-[1.5px] rounded-full"
+                          style={{ width: "1.1rem", backgroundColor: "#FF0000" }}
+                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.header>
 
       {/* ── Mobile nav ─────────────────────────────────────────── */}
       <div className="fixed top-4 right-4 z-50 md:hidden flex items-center gap-2">
-        {/* A7 logo pill */}
+        {/* Logo — circular liquid glass, fills edge-to-edge */}
         <motion.button
           onClick={() => scrollTo("home")}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="h-9 px-4 flex items-center"
+          className="select-none shrink-0 rounded-full overflow-hidden hover:opacity-80 transition-opacity duration-150"
+          aria-label="Go to top"
           style={{
-            background: NAV_BG,
+            width: "40px",
+            height: "40px",
             border: `1px solid ${NAV_BORDER}`,
             backdropFilter: NAV_BLUR,
             WebkitBackdropFilter: NAV_BLUR,
-            borderRadius: "9999px",
             boxShadow: "0 4px 20px rgba(0,0,0,0.35)",
           }}
         >
-          <A7Mark width={28} height={20} />
+          <Image
+            src="/logo-icon.png"
+            alt="A7 Entertainment"
+            width={40}
+            height={40}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
         </motion.button>
 
-        {/* Hamburger */}
+        {/* Hamburger — glass */}
         <motion.button
           onClick={() => setMobileOpen((v) => !v)}
           initial={{ opacity: 0 }}

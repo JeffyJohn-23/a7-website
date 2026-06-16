@@ -16,6 +16,58 @@
   --color-foreground: var(--foreground);
 }
 
+/* ── Spacing scale (design tokens) ──────────────────────────
+   One ladder used for every margin/gap in the registration form.
+   Values are rem so they ride the fluid html font-size, but the
+   ratios (and therefore the visual hierarchy) stay fixed.        */
+:root {
+  --space-xs:  0.5rem;  /*  8px — label → input, helper → field   */
+  --space-sm:  1rem;    /* 16px — tight internal padding          */
+  --space-md:  1.5rem;  /* 24px — field rows, checkbox groups     */
+  --space-lg:  2rem;    /* 32px — section header → first field    */
+  --space-xl:  3rem;    /* 48px — button area, mobile section gap */
+  --space-2xl: 5rem;    /* 80px — section → section (desktop)     */
+
+  /* Responsive rhythm — recomputed per breakpoint */
+  --space-section: var(--space-2xl); /* 80px desktop */
+  --gap-col:       var(--space-xl);  /* 48px desktop column gutter */
+}
+@media (max-width: 1023px) { /* tablet */
+  :root { --space-section: 4rem; --gap-col: 2rem; }   /* 64 / 32 */
+}
+@media (max-width: 767px) {  /* mobile */
+  :root { --space-section: 3rem; --gap-col: 1.5rem; } /* 48 / 24 */
+}
+
+/* ── Form layout primitives (built on the scale) ──────────── */
+
+/* Section rhythm — flex gap never collapses, so badges can never
+   collide with the previous section's content. */
+.form-sections { display: flex; flex-direction: column; gap: var(--space-section); }
+
+/* Uniform vertical spacing between stacked fields. */
+.field-stack { display: flex; flex-direction: column; gap: var(--space-md); }
+
+/* Equal-width two-column block: responsive gutter + 24px row gap. */
+.col-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: var(--space-md);
+  column-gap: var(--gap-col);
+}
+@media (min-width: 768px) { .col-2 { grid-template-columns: 1fr 1fr; } }
+
+/* Personal-info layout: fields (2fr) + photo (1fr) on desktop. */
+.col-fields-photo {
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: var(--space-md);
+  column-gap: var(--gap-col);
+}
+@media (min-width: 1024px) {
+  .col-fields-photo { grid-template-columns: 2fr 1fr; }
+}
+
 /* Consistent fluid horizontal padding — works from 320px to 4K */
 .section-padding {
   padding-left:  clamp(1.25rem, 5vw, 6rem);

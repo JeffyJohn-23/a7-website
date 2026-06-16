@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
@@ -24,6 +25,7 @@ export function Header() {
   const [mobileOpen,    setMobileOpen]    = useState(false);
   const lastScrollY = useRef(0);
   const ticking    = useRef(false);
+  const pathname   = usePathname();
 
   useEffect(() => {
     const getActive = (): string => {
@@ -62,14 +64,18 @@ export function Header() {
   const scrollTo = useCallback((id: string) => {
     setMobileOpen(false);
     setActiveSection(id);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-  }, []);
+    if (pathname === "/") {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.location.href = `/#${id}`;
+    }
+  }, [pathname]);
 
   return (
     <>
       {/* ── Desktop nav ──────────────────────────────────────── */}
       <motion.header
-        className="fixed top-5 right-5 z-50 hidden md:flex items-center gap-2 pointer-events-none"
+        className="fixed top-3 right-5 z-50 hidden md:flex items-center gap-2 pointer-events-none"
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.65, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
@@ -168,7 +174,7 @@ export function Header() {
       </motion.header>
 
       {/* ── Mobile nav ─────────────────────────────────────────── */}
-      <div className="fixed top-4 right-4 z-50 md:hidden flex items-center gap-2">
+      <div className="fixed top-3 right-4 z-50 md:hidden flex items-center gap-2">
         {/* Logo — circular liquid glass, fills edge-to-edge */}
         <motion.button
           onClick={() => scrollTo("home")}

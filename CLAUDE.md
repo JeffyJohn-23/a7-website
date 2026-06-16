@@ -36,7 +36,11 @@ HomeHero → AboutSection → ServicesSection → GallerySection → ContactSect
 
 `HomeHero` is rendered directly; all other sections are lazy-loaded via `next/dynamic` with `ssr: false`.
 
-Sub-pages at `/about`, `/gallery`, `/services`, `/contact` use `HeroScene` and are stubs — not the main experience.
+Sub-pages at `/about`, `/gallery`, `/services`, `/contact` exist as separate routes but are secondary to the main scroll experience:
+- `/about` — `HeroScene` + `StoryScene` (mission / expertise alternating layout)
+- `/gallery` — `GallerySection` modal viewer
+- `/contact` — `ContactSection` form
+- `/services` — skeleton grid, not fully built out
 
 ### Key Architectural Seams
 
@@ -48,7 +52,10 @@ Sub-pages at `/about`, `/gallery`, `/services`, `/contact` use `HeroScene` and a
 | `src/components/scenes/HomeHero.tsx` | Fullscreen hero — gated behind `PageLoader` via `loaderDone` state |
 | `src/components/ui/PageLoader.tsx` | GSAP fullscreen intro overlay (`z-[200]`); calls `onComplete()` prop when exit finishes |
 | `src/app/api/contact/route.ts` | Contact form API — sends email via Resend (`RESEND_API_KEY` env var) |
+| `src/app/opengraph-image.tsx` | Dynamic OG image generator (1200×630) |
+| `src/app/sitemap.ts` | XML sitemap for 5 routes |
 | `src/lib/lenis.ts` | Lenis singleton — `initLenis()` / `getLenis()` / `destroyLenis()` |
+| `src/lib/utils.ts` | `cn(...inputs)` — clsx helper for conditional class names |
 | `src/styles/globals.css` | CSS vars, `.section-padding`, reveal base states, keyframes |
 
 ### Unused / Dormant Files
@@ -66,6 +73,7 @@ Not imported or rendered anywhere:
 | Role | Value | Usage |
 |------|-------|-------|
 | Primary Red | `#FF0000` | CTAs, accents, highlights, active indicators |
+| Primary Red Hover | `#FF3333` | Button hover states (Tailwind: `primary-hover`) |
 | Background | `#000000` | Page background, hero, dark sections |
 | Foreground | `#FFFFFF` | Headings, active text |
 | Surface | `#0d0d0d` | Dark card backgrounds |

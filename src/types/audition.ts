@@ -7,8 +7,6 @@ export type AuditionData = {
   nationality: string;
   ethnicity: string;
   gender: string[];
-  height: string;
-  weight: string;
   bloodType: string;
   phone: string;
   email: string;

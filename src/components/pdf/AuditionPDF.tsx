@@ -211,8 +211,6 @@ export function AuditionPDF({ data }: { data: AuditionData }) {
                 </View>
               </View>
               <Row>
-                <Field label="Height" value={data.height} />
-                <Field label="Weight" value={data.weight} />
                 <Field label="Blood Type" value={data.bloodType} />
                 <Field label="Phone" value={data.phone} />
               </Row>

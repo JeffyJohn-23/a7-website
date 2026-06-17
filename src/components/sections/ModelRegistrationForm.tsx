@@ -7,7 +7,7 @@ import type { AuditionData } from "@/types/audition";
 
 const EMPTY: AuditionData = {
   fullName: "", stageName: "", dob: "", age: "", nationality: "", ethnicity: "",
-  gender: [], height: "", weight: "", bloodType: "", phone: "", email: "",
+  gender: [], bloodType: "", phone: "", email: "",
   address: "", photoBase64: "",
   measureWeight: "", heightWithoutHeels: "", heightWithHeels: "",
   hair: "", eyes: "", complexion: "", bustChest: "",
@@ -463,8 +463,6 @@ export function ModelRegistrationForm() {
     if (!form.nationality.trim()) return "Nationality is required.";
     if (!form.ethnicity.trim()) return "Ethnicity is required.";
     if (form.gender.length === 0) return "Please select a gender.";
-    if (!form.height.trim()) return "Height is required.";
-    if (!form.weight.trim()) return "Weight is required.";
     if (!form.bloodType.trim()) return "Blood type is required.";
     if (!form.phone.trim()) return "Phone number is required.";
     if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
@@ -577,8 +575,6 @@ export function ModelRegistrationForm() {
                   onChange={(v) => setForm((f) => ({ ...f, gender: v }))}
                 />
                 <div className="col-2">
-                  <TextInput label="Height" value={form.height} onChange={set("height")} placeholder="e.g. 5'7&quot;" required />
-                  <TextInput label="Weight" value={form.weight} onChange={set("weight")} placeholder="e.g. 60 kg" required />
                   <TextInput label="Blood Type" value={form.bloodType} onChange={set("bloodType")} required />
                   <TextInput label="Phone Number" value={form.phone} onChange={set("phone")} type="tel" required />
                 </div>
@@ -830,10 +826,15 @@ export function ModelRegistrationForm() {
                 <button
                   type="submit"
                   disabled={status === "loading"}
-                  className="relative overflow-hidden border border-white hover:bg-white hover:text-black transition-colors text-white text-sm tracking-[0.2em] uppercase px-6 py-3 font-bold disabled:opacity-50 w-full sm:w-auto"
+                  className="group relative overflow-hidden border border-white hover:border-[#FF0000] transition-[border-color] duration-300 text-white text-sm tracking-[0.2em] uppercase px-6 py-3 font-bold disabled:opacity-50 w-full sm:w-auto"
                   data-cursor-hover
                 >
-                  <span className="relative">
+                  {/* Red fill sweeps top → bottom on hover */}
+                  <span
+                    className="absolute inset-0 bg-[#FF0000] -translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out"
+                    aria-hidden="true"
+                  />
+                  <span className="relative z-10">
                     {status === "loading" ? "Submitting…" : "Submit Application"}
                   </span>
                 </button>

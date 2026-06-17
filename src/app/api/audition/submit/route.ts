@@ -12,7 +12,7 @@ export const maxDuration = 30;
 // ─── Google Sheet columns (in order) ────────────────────────────────────────
 const SHEET_HEADERS = [
   "Timestamp", "Full Name", "Stage Name", "Date of Birth", "Age",
-  "Nationality", "Ethnicity", "Gender", "Height", "Weight",
+  "Nationality", "Ethnicity", "Gender",
   "Blood Type", "Phone", "Email", "Address",
   "Meas. Weight", "Height Without Heels", "Height With Heels",
   "Hair", "Eyes", "Complexion", "Bust/Chest", "Upper Waist", "Lower Waist",
@@ -75,7 +75,6 @@ function buildAdminHtml(data: AuditionData, ts: string): string {
       ${field("Gender", g)}
       ${field("Nationality", data.nationality)}
       ${field("Audition For", cats)}
-      ${field("Height", data.height)}
       ${field("Languages", data.languageSkills)}
       ${field("Instagram", data.instagram)}
     </table>
@@ -142,8 +141,6 @@ function buildSheetRow(data: AuditionData): string[] {
     data.nationality,
     data.ethnicity,
     data.gender.join(", "),
-    data.height,
-    data.weight,
     data.bloodType,
     data.phone,
     data.email,

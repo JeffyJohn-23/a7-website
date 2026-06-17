@@ -28,7 +28,7 @@ export default function ModelRegistrationPage() {
             A7 Entertainment
           </p>
           <h1 className="text-white text-4xl md:text-5xl font-bold leading-tight mb-3">
-            Model Registration
+            Registration — Orion Model Hunt
           </h1>
           <p className="text-[#555] text-sm tracking-widest uppercase">
             Complete all sections and submit your application below.

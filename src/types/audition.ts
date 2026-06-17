@@ -19,8 +19,6 @@ export type AuditionData = {
   measureWeight: string;
   heightWithoutHeels: string;
   heightWithHeels: string;
-  hobby: string;
-  emailId: string;
   hair: string;
   eyes: string;
   complexion: string;
@@ -36,10 +34,10 @@ export type AuditionData = {
   // Section 4 — Language Skills
   languageSkills: string;
 
-  // Section 5 — About You
+  // Section 5 — About You (5 bullet points joined with \n)
   aboutYou: string;
 
-  // Section 6 — Experience
+  // Section 6 — Experience (5 bullet points joined with \n)
   experience: string;
 
   // Section 7 — Skills
@@ -48,13 +46,10 @@ export type AuditionData = {
   skill3: string;
   skill4: string;
 
-  // Section 8 — Upload Links
-  link1: string;
-  link2: string;
-  link3: string;
-  link4: string;
+  // Section 8 — Audition Link
+  auditionLink: string;
 
-  // Section 9 — Social Media
+  // Section 9 — Social Media (full URLs)
   instagram: string;
   snapchat: string;
   threads: string;

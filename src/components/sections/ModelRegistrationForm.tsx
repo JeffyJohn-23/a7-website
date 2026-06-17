@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import type { AuditionData } from "@/types/audition";
 
 // ─── initial state ────────────────────────────────────────────────────────────
@@ -195,12 +195,32 @@ function SkillInput({ value, onChange }: { value: string; onChange: (v: string) 
 
 export function ModelRegistrationForm() {
   const [form, setForm] = useState<AuditionData>(EMPTY);
-  const [photoPreview, setPhotoPreview] = useState<string>("");
+  // rawPhoto = compressed source used for drag manipulation; never cropped
+  const [rawPhoto, setRawPhoto] = useState<string>("");
   const [aboutPoints, setAboutPoints] = useState<string[]>([...EMPTY_POINTS]);
   const [expPoints, setExpPoints] = useState<string[]>([...EMPTY_POINTS]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // ── Photo drag / zoom state ────────────────────────────────────────────────
+  const [photoOffset, setPhotoOffset] = useState({ x: 0, y: 0 });
+  const [photoScale, setPhotoScale] = useState({ w: 0, h: 0 });
+  const [zoomLevel, setZoomLevel] = useState(1.0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOrigin, setDragOrigin] = useState({ mx: 0, my: 0, ox: 0, oy: 0 });
+  const [hasDragged, setHasDragged] = useState(false);
+  const [cropConfirmed, setCropConfirmed] = useState(false);
+  const photoFrameRef = useRef<HTMLDivElement>(null);
+  // Refs readable inside non-passive DOM event listeners (no stale closures)
+  const isDraggingRef = useRef(false);
+  const dragOriginRef = useRef(dragOrigin);
+  const photoOffsetRef = useRef(photoOffset);
+  const photoScaleRef = useRef(photoScale);
+  const naturalSizeRef = useRef({ w: 0, h: 0 });
+  const baseCoverScaleRef = useRef(1.0);
+  const zoomLevelRef = useRef(1.0);
+  const pinchStartRef = useRef({ dist: 0, zoom: 1.0 });
 
   const set = (field: keyof AuditionData) => (v: string) =>
     setForm((f) => ({ ...f, [field]: v }));
@@ -225,17 +245,107 @@ export function ModelRegistrationForm() {
 
   const reset = () => {
     setForm(EMPTY);
-    setPhotoPreview("");
+    setRawPhoto("");
+    setPhotoOffset({ x: 0, y: 0 });
+    setPhotoScale({ w: 0, h: 0 });
+    setZoomLevel(1.0);
+    setHasDragged(false);
+    setCropConfirmed(false);
     setAboutPoints([...EMPTY_POINTS]);
     setExpPoints([...EMPTY_POINTS]);
     setStatus("idle");
     setErrorMsg("");
   };
 
-  // ── Photo compression ──────────────────────────────────────────────────────
+  // ── Photo upload + drag-to-reposition ─────────────────────────────────────
+
+  // Keep refs in sync for use inside non-passive DOM event listeners
+  isDraggingRef.current = isDragging;
+  dragOriginRef.current = dragOrigin;
+  photoOffsetRef.current = photoOffset;
+  photoScaleRef.current = photoScale;
+  zoomLevelRef.current = zoomLevel;
+
+  // Non-passive wheel (zoom) + touchmove (pan/pinch) listeners
+  useEffect(() => {
+    const el = photoFrameRef.current;
+    if (!el || !rawPhoto) return;
+
+    const clamp = (x: number, y: number, sc: { w: number; h: number }) => {
+      const fw = el.offsetWidth, fh = el.offsetHeight;
+      return {
+        x: sc.w < fw ? Math.round((fw - sc.w) / 2) : Math.max(fw - sc.w, Math.min(0, x)),
+        y: sc.h < fh ? Math.round((fh - sc.h) / 2) : Math.max(fh - sc.h, Math.min(0, y)),
+      };
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.08 : 0.08;
+      const { w: nw, h: nh } = naturalSizeRef.current;
+      const cs = baseCoverScaleRef.current;
+      const fw = el.offsetWidth, fh = el.offsetHeight;
+      const containRatio = Math.min(fw / nw, fh / nh) / cs;
+      const oldZoom = zoomLevelRef.current;
+      const newZoom = Math.max(containRatio, Math.min(3.0, oldZoom + delta));
+      const oldW = Math.round(nw * cs * oldZoom), oldH = Math.round(nh * cs * oldZoom);
+      const newW = Math.round(nw * cs * newZoom), newH = Math.round(nh * cs * newZoom);
+      const ox = photoOffsetRef.current.x, oy = photoOffsetRef.current.y;
+      const fx = (fw / 2 - ox) / (oldW || 1), fy = (fh / 2 - oy) / (oldH || 1);
+      const clamped = clamp(fw / 2 - fx * newW, fh / 2 - fy * newH, { w: newW, h: newH });
+      setZoomLevel(newZoom);
+      setPhotoScale({ w: newW, h: newH });
+      setPhotoOffset(clamped);
+      setCropConfirmed(false);
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      if (e.touches.length === 2) {
+        // Pinch zoom
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const { dist: startDist, zoom: startZoom } = pinchStartRef.current;
+        if (startDist <= 0) return;
+        const { w: nw, h: nh } = naturalSizeRef.current;
+        const cs = baseCoverScaleRef.current;
+        const fw = el.offsetWidth, fh = el.offsetHeight;
+        const containRatio = Math.min(fw / nw, fh / nh) / cs;
+        const oldZoom = zoomLevelRef.current;
+        const newZoom = Math.max(containRatio, Math.min(3.0, startZoom * (dist / startDist)));
+        const oldW = Math.round(nw * cs * oldZoom), oldH = Math.round(nh * cs * oldZoom);
+        const newW = Math.round(nw * cs * newZoom), newH = Math.round(nh * cs * newZoom);
+        const ox = photoOffsetRef.current.x, oy = photoOffsetRef.current.y;
+        const fx = (fw / 2 - ox) / (oldW || 1), fy = (fh / 2 - oy) / (oldH || 1);
+        const clamped = clamp(fw / 2 - fx * newW, fh / 2 - fy * newH, { w: newW, h: newH });
+        setZoomLevel(newZoom);
+        setPhotoScale({ w: newW, h: newH });
+        setPhotoOffset(clamped);
+        setCropConfirmed(false);
+      } else if (e.touches.length === 1 && isDraggingRef.current) {
+        // Single-finger pan
+        const t = e.touches[0];
+        const o = dragOriginRef.current;
+        const sc = photoScaleRef.current;
+        setPhotoOffset(clamp(o.ox + t.clientX - o.mx, o.oy + t.clientY - o.my, sc));
+        setHasDragged(true);
+        setCropConfirmed(false);
+      }
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [rawPhoto]); // re-bind when a new photo is loaded
+
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = ""; // allow re-selecting same file
     const reader = new FileReader();
     reader.onload = (ev) => {
       const src = ev.target?.result as string;
@@ -243,7 +353,7 @@ export function ModelRegistrationForm() {
       img.src = src;
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const MAX = 600;
+        const MAX = 1200; // larger source for better crop quality
         let w = img.naturalWidth, h = img.naturalHeight;
         if (w > MAX || h > MAX) {
           if (w > h) { h = Math.round((h * MAX) / w); w = MAX; }
@@ -251,13 +361,98 @@ export function ModelRegistrationForm() {
         }
         canvas.width = w; canvas.height = h;
         canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
-        const compressed = canvas.toDataURL("image/jpeg", 0.75);
-        setPhotoPreview(compressed);
-        setForm((f) => ({ ...f, photoBase64: compressed }));
+        const compressed = canvas.toDataURL("image/jpeg", 0.85);
+        setRawPhoto(compressed);
+        setPhotoOffset({ x: 0, y: 0 });
+        setPhotoScale({ w: 0, h: 0 }); // will be set by onLoad on the <img>
+        setHasDragged(false);
+        setForm((f) => ({ ...f, photoBase64: compressed })); // fallback until crop
       };
     };
     reader.readAsDataURL(file);
   };
+
+  // Called when the preview <img> loads — compute cover-fit scale & center offset
+  const handleImgLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    const frame = photoFrameRef.current;
+    if (!frame) return;
+    const fw = frame.offsetWidth, fh = frame.offsetHeight;
+    const nw = img.naturalWidth, nh = img.naturalHeight;
+    naturalSizeRef.current = { w: nw, h: nh };
+    const coverScale = Math.max(fw / nw, fh / nh);
+    baseCoverScaleRef.current = coverScale;
+    const sw = Math.round(nw * coverScale), sh = Math.round(nh * coverScale);
+    setPhotoScale({ w: sw, h: sh });
+    setPhotoOffset({ x: Math.round((fw - sw) / 2), y: Math.round((fh - sh) / 2) });
+    setZoomLevel(1.0);
+  }, []);
+
+  const getClampedOffset = useCallback((x: number, y: number) => {
+    const frame = photoFrameRef.current;
+    const sc = photoScaleRef.current;
+    if (!frame || !sc.w) return { x, y };
+    const fw = frame.offsetWidth, fh = frame.offsetHeight;
+    return {
+      // Center when image is smaller than frame; clamp to cover otherwise
+      x: sc.w < fw ? Math.round((fw - sc.w) / 2) : Math.max(fw - sc.w, Math.min(0, x)),
+      y: sc.h < fh ? Math.round((fh - sc.h) / 2) : Math.max(fh - sc.h, Math.min(0, y)),
+    };
+  }, []);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    setDragOrigin({ mx: e.clientX, my: e.clientY, ox: photoOffset.x, oy: photoOffset.y });
+    e.preventDefault();
+  };
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    setPhotoOffset(getClampedOffset(
+      dragOrigin.ox + e.clientX - dragOrigin.mx,
+      dragOrigin.oy + e.clientY - dragOrigin.my,
+    ));
+    setHasDragged(true);
+    setCropConfirmed(false);
+  };
+  const handleMouseUp = () => setIsDragging(false);
+  const handleMouseLeave = () => setIsDragging(false);
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchStartRef.current = { dist: Math.sqrt(dx * dx + dy * dy), zoom: zoomLevelRef.current };
+      setIsDragging(false);
+    } else {
+      const t = e.touches[0];
+      setIsDragging(true);
+      setDragOrigin({ mx: t.clientX, my: t.clientY, ox: photoOffset.x, oy: photoOffset.y });
+    }
+  };
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    pinchStartRef.current = { dist: 0, zoom: zoomLevelRef.current };
+  };
+
+  // Capture what's visible in the frame → update photoBase64 for PDF
+  const confirmCrop = useCallback(() => {
+    const frame = photoFrameRef.current;
+    if (!rawPhoto || !frame || !photoScale.w) return;
+    const fw = frame.offsetWidth;
+    const fh = frame.offsetHeight;
+    const canvas = document.createElement("canvas");
+    canvas.width = fw;
+    canvas.height = fh;
+    const ctx = canvas.getContext("2d")!;
+    const img = new window.Image();
+    img.onload = () => {
+      ctx.drawImage(img, photoOffset.x, photoOffset.y, photoScale.w, photoScale.h);
+      const cropped = canvas.toDataURL("image/jpeg", 0.85);
+      setForm((f) => ({ ...f, photoBase64: cropped }));
+      setCropConfirmed(true);
+    };
+    img.src = rawPhoto;
+  }, [rawPhoto, photoOffset, photoScale]);
 
   // ── Validation (all fields required) ─────────────────────────────────────
   const validate = (): string | null => {
@@ -294,9 +489,6 @@ export function ModelRegistrationForm() {
     if (!form.skill1.trim()) return "At least one skill is required.";
     if (!form.auditionLink.trim()) return "Audition link is required.";
     if (!form.instagram.trim()) return "Instagram URL is required.";
-    if (!form.snapchat.trim()) return "Snapchat URL is required.";
-    if (!form.threads.trim()) return "Threads URL is required.";
-    if (!form.otherSocial.trim()) return "Other social media URL is required.";
     if (!form.agreedToTerms) return "You must agree to the terms.";
     if (!form.signatureName.trim()) return "Signature (full name) is required.";
     return null;
@@ -394,38 +586,101 @@ export function ModelRegistrationForm() {
                 <TextInput label="Address" value={form.address} onChange={set("address")} required />
               </div>
 
-              {/* Photo upload — fixed 200px height */}
+              {/* Photo upload — drag-to-reposition */}
               <div className="flex flex-col">
                 <Label>Photo (4×5cm) / ID / Selfie <span className="text-[#FF0000]">*</span></Label>
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  className="w-full h-[200px] border border-[#333] hover:border-[#FF0000] transition-colors overflow-hidden flex flex-col items-center justify-center gap-2 p-4"
-                  data-cursor-hover
-                >
-                  {photoPreview ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <>
-                      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" className="opacity-30">
-                        <circle cx="12" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M4 19c0-3.314 3.582-6 8-6s8 2.686 8 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                      <span className="text-white/30 text-[10px] text-center tracking-widest uppercase">Click to Upload</span>
-                    </>
-                  )}
-                </button>
-                {photoPreview && (
+
+                {rawPhoto ? (
+                  <>
+                    {/* Draggable frame */}
+                    <div
+                      ref={photoFrameRef}
+                      className="w-full h-[200px] border border-[#333] overflow-hidden relative select-none"
+                      style={{ cursor: isDragging ? "grabbing" : "grab" }}
+                      onMouseDown={handleMouseDown}
+                      onMouseMove={handleMouseMove}
+                      onMouseUp={handleMouseUp}
+                      onMouseLeave={handleMouseLeave}
+                      onTouchStart={handleTouchStart}
+                      onTouchEnd={handleTouchEnd}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={rawPhoto}
+                        alt="Preview"
+                        className="absolute pointer-events-none"
+                        style={{
+                          width: photoScale.w || "100%",
+                          height: photoScale.h || "auto",
+                          left: photoOffset.x,
+                          top: photoOffset.y,
+                        }}
+                        onLoad={handleImgLoad}
+                        draggable={false}
+                      />
+                      {/* Hint overlay — disappears after first drag */}
+                      {!hasDragged && (
+                        <div className="absolute inset-0 flex items-end justify-center pb-3 pointer-events-none">
+                          <span
+                            className="text-[9px] tracking-[0.25em] uppercase px-3 py-1"
+                            style={{ background: "rgba(0,0,0,0.65)", color: "rgba(255,255,255,0.55)" }}
+                          >
+                            Drag to reposition · Scroll to zoom
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Controls */}
+                    <div className="flex items-center justify-between mt-2">
+                      {cropConfirmed ? (
+                        <span className="text-[9px] tracking-[0.25em] uppercase" style={{ color: "rgba(255,255,255,0.35)" }}>
+                          ✓ Saved — drag or zoom to re-adjust
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={confirmCrop}
+                          className="text-[9px] tracking-[0.25em] uppercase transition-opacity hover:opacity-70"
+                          style={{ color: "#FF0000" }}
+                          data-cursor-hover
+                        >
+                          ✓ Confirm Position
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRawPhoto("");
+                          setPhotoOffset({ x: 0, y: 0 });
+                          setPhotoScale({ w: 0, h: 0 });
+                          setZoomLevel(1.0);
+                          setHasDragged(false);
+                          setCropConfirmed(false);
+                          setForm((f) => ({ ...f, photoBase64: "" }));
+                        }}
+                        className="text-[9px] text-white/25 hover:text-[#FF0000] transition-colors tracking-[0.25em] uppercase"
+                        data-cursor-hover
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </>
+                ) : (
                   <button
                     type="button"
-                    onClick={() => { setPhotoPreview(""); setForm((f) => ({ ...f, photoBase64: "" })); }}
-                    className="mt-2 text-[10px] text-white/30 hover:text-[#FF0000] transition-colors tracking-widest uppercase text-center"
+                    onClick={() => fileRef.current?.click()}
+                    className="w-full h-[200px] border border-[#333] hover:border-[#FF0000] transition-colors flex flex-col items-center justify-center gap-2 p-4"
                     data-cursor-hover
                   >
-                    Remove
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" className="opacity-30">
+                      <circle cx="12" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
+                      <path d="M4 19c0-3.314 3.582-6 8-6s8 2.686 8 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                    <span className="text-white/30 text-[10px] text-center tracking-widest uppercase">Click to Upload</span>
                   </button>
                 )}
+
                 <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
               </div>
             </div>
@@ -522,9 +777,9 @@ export function ModelRegistrationForm() {
             <Helper>Provide your profile links (full URL).</Helper>
             <div className="col-2">
               <TextInput label="Instagram" value={form.instagram} onChange={set("instagram")} type="url" placeholder="https://instagram.com/username" required />
-              <TextInput label="Snapchat" value={form.snapchat} onChange={set("snapchat")} type="url" placeholder="https://www.snapchat.com/add/username" required />
-              <TextInput label="Threads" value={form.threads} onChange={set("threads")} type="url" placeholder="https://www.threads.net/@username" required />
-              <TextInput label="Other Social Media" value={form.otherSocial} onChange={set("otherSocial")} type="url" placeholder="https://" required />
+              <TextInput label="Snapchat" value={form.snapchat} onChange={set("snapchat")} type="url" placeholder="https://www.snapchat.com/add/username" />
+              <TextInput label="Threads" value={form.threads} onChange={set("threads")} type="url" placeholder="https://www.threads.net/@username" />
+              <TextInput label="Other Social Media" value={form.otherSocial} onChange={set("otherSocial")} type="url" placeholder="https://" />
             </div>
           </section>
 
@@ -582,7 +837,7 @@ export function ModelRegistrationForm() {
                     {status === "loading" ? "Submitting…" : "Submit Application"}
                   </span>
                 </button>
-                <p className="text-xs text-[#666]">All fields are required.</p>
+                <p className="text-xs text-[#666]">Fields marked <span className="text-[#FF0000]">*</span> are required.</p>
               </div>
             </div>
           </section>

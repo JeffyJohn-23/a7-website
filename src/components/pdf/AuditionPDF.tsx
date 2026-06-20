@@ -194,7 +194,6 @@ export function AuditionPDF({ data }: { data: AuditionData }) {
             <View style={{ flex: 1 }}>
               <Row>
                 <Field label="Full Name" value={data.fullName} />
-                <Field label="Stage Name" value={data.stageName} />
               </Row>
               <Row>
                 <Field label="Date of Birth" value={data.dob} />

@@ -24,12 +24,16 @@ export default function ModelRegistrationPage() {
         style={{ paddingTop: "5.5rem", paddingBottom: "2.5rem" }}
       >
         <div className="max-w-4xl mx-auto">
-          <p className="text-[#FF0000] text-[10px] tracking-[0.4em] uppercase mb-3">
+          {/* <p className="text-[#FF0000] text-[10px] tracking-[0.4em] uppercase mb-3">
             A7 Entertainment
-          </p>
-          <h1 className="text-white text-4xl md:text-5xl font-bold leading-tight mb-3">
-            Registration — Orion Model Hunt
+          </p> */}
+          <h1 className="text-[#FF0000] text-4xl md:text-5xl font-bold leading-tight mb-3">
+            REGISTRATION
           </h1>
+            <h1 className="text-white text-3xl md:text-3xl font-bold leading-tight mb-3">
+            Orion Model Hunt By A7Entertainment & Parker Models.
+          </h1>
+
           <p className="text-[#555] text-sm tracking-widest uppercase">
             Complete all sections and submit your application below.
           </p>

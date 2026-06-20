@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
@@ -202,7 +202,7 @@ export function HomeHero() {
                 className="font-sans uppercase text-white/38"
                 style={{ fontSize: "clamp(0.6rem, 1vw, 0.72rem)", letterSpacing: "0.45em" }}
               >
-                Est. 2016 · India &amp; UAE
+                Est. 2012
               </span>
             </div>
 
@@ -258,8 +258,8 @@ export function HomeHero() {
               className="mt-5 md:mt-9 text-white/48 font-sans leading-[1.8] max-w-lg"
               style={{ fontSize: "clamp(0.82rem, 1.5vw, 1rem)", opacity: 0 }}
             >
-              We produce concerts, manage celebrities, and build brands — delivering
-              end-to-end event management and digital marketing across India and UAE.
+              A7 Entertainment curates extraordinary experiences, influential partnerships, and world-class brand moments for organizations, luxury brands, industry leaders, and global audiences.
+              From private executive gatherings and celebrity-led campaigns to large-scale productions and international brand activations.
             </p>
 
             {/* CTA row */}

@@ -153,11 +153,11 @@ export function AboutSection() {
             className="font-display font-black text-[#0a0a0a] leading-[1.05]"
             style={{ fontSize: "clamp(2.4rem, 6.5vw, 5rem)" }}
           >
-            Not every agency
+            Architects of
             <br />
-            can fill a stadium.
-            <br />
-            <span className="text-[#FF0000]">We can.</span>
+            {/* can fill a stadium.
+            <br /> */}
+            <span className="text-[#FF0000]">Extraordinary Experiences.</span>
           </p>
         </div>
 
@@ -178,28 +178,30 @@ export function AboutSection() {
 
         {/* ── 2-col text + image ── */}
         <div
-          className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-20 items-start"
-          style={{ marginBottom: "5rem" }}
+          className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-30 items-start"
+          style={{ marginBottom: "2rem", marginTop: "3rem" }}
         >
           <div className="space-y-6">
             <p className="reveal-up text-[#3a3a3a] text-base md:text-lg leading-[1.9]">
-              A7 Entertainment is a fully integrated event and media company
-              with over a decade of industry experience. We specialize in
-              crafting impactful experiences across events, entertainment, and
-              digital media — driven by a team of seasoned professionals.
+              A7 Entertainment is a globally connected experiential marketing and event management powerhouse trusted by brands that refuse to blend in.
+              <br />
+              <br />
+              For over fifteen years, we have designed immersive experiences, orchestrated iconic events, secured influential partnerships, and delivered strategic marketing campaigns that captivate audiences and elevate brand perception.
+              
             </p>
-            <p className="reveal-up text-[#666] text-base leading-[1.85]">
+            {/* <p className="reveal-up text-[#666] text-base leading-[1.85]">
+              <br />
               From concept to execution, we turn ideas into experiences that
-              connect, engage, and leave a mark. Our work spans Kerala, pan-India,
-              and international productions in the UAE.
-            </p>
+              connect, engage, and leave a mark. Our work spans - India
+              and Globally.
+            </p> */}
           </div>
 
           {/* Image panel */}
-          <div className="reveal-up hidden lg:block relative" style={{ minHeight: "380px" }}>
+          <div className="reveal-up hidden lg:block relative" style={{ minHeight: "280px" }}>
             <div
               className="relative w-full h-full overflow-hidden"
-              style={{ minHeight: "380px", borderRadius: "2px" }}
+              style={{ minHeight: "340px", borderRadius: "2px" }}
             >
               <Image
                 src="/gallery/red-silhouettes.jpg"
@@ -222,14 +224,14 @@ export function AboutSection() {
         </div>
 
         {/* ── Pull quote — editorial break ── */}
-        <div
+        {/* <div
           ref={quoteRef}
           className="relative border-l-[3px] border-[#FF0000] pl-8 py-3 mt-20 mb-14"
           style={{ opacity: 0 }}
         >
           <p
             className="font-serif italic font-bold text-[#0a0a0a] leading-[1.35]"
-            style={{ fontSize: "clamp(1.3rem, 3vw, 2.2rem)" }}
+            style={{ fontSize: "clamp(1.3rem, 3vw, 2.2rem)" , marginTop: "4rem" }}
           >
             &ldquo;From concept to curtain call, we are with you at every step —
             because the details are everything.&rdquo;
@@ -237,10 +239,10 @@ export function AboutSection() {
           <p className="mt-4 text-[10px] tracking-[0.4em] uppercase text-[#999] font-sans">
             A7 Entertainment — Est. 2016
           </p>
-        </div>
+        </div> */}
 
         {/* ── Editorial pillar list ── */}
-        <div className="mb-20 divide-y divide-black/[0.07]">
+        {/* <div className="mb-20 divide-y divide-black/[0.07]">
           {pillars.map((p, i) => (
             <motion.div
               key={p.num}
@@ -249,18 +251,18 @@ export function AboutSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.52, delay: i * 0.1, ease: "easeOut" }}
-            >
+            > */}
               {/* Number */}
-              <span
+              {/* <span
                 className="font-display font-bold text-[#FF0000] shrink-0 tabular-nums"
                 style={{ fontSize: "clamp(0.7rem, 1.1vw, 0.8rem)", letterSpacing: "0.15em", minWidth: "2.5rem" }}
               >
                 {p.num}
-              </span>
+              </span> */}
               {/* Animated divider line */}
-              <div className="w-6 h-px bg-black/15 shrink-0 hidden sm:block group-hover:w-14 group-hover:bg-[#FF0000] transition-all duration-350" />
+              {/* <div className="w-6 h-px bg-black/15 shrink-0 hidden sm:block group-hover:w-14 group-hover:bg-[#FF0000] transition-all duration-350" /> */}
               {/* Content */}
-              <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-10 flex-1">
+              {/* <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-10 flex-1">
                 <p
                   className="font-display font-bold text-[#0a0a0a] shrink-0 group-hover:text-[#FF0000] transition-colors duration-300"
                   style={{ fontSize: "clamp(1rem, 2vw, 1.2rem)" }}
@@ -270,14 +272,14 @@ export function AboutSection() {
                 <p className="text-[#777] leading-[1.75]" style={{ fontSize: "clamp(0.8rem, 1.3vw, 0.9rem)" }}>
                   {p.body}
                 </p>
-              </div>
+              </div> */}
               {/* Arrow indicator */}
-              <span className="text-black/15 group-hover:text-[#FF0000] group-hover:translate-x-1 transition-all duration-300 hidden sm:block">
+              {/* <span className="text-black/15 group-hover:text-[#FF0000] group-hover:translate-x-1 transition-all duration-300 hidden sm:block">
                 →
               </span>
             </motion.div>
           ))}
-        </div>
+        </div> */}
 
         {/* ── Stats — large editorial numbers ── */}
         <div

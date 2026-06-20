@@ -1,7 +1,6 @@
 export type AuditionData = {
   // Section 1 — Personal Information
   fullName: string;
-  stageName: string;
   dob: string;
   age: string;
   nationality: string;

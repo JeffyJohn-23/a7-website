@@ -6,7 +6,7 @@ import type { AuditionData } from "@/types/audition";
 // ─── initial state ────────────────────────────────────────────────────────────
 
 const EMPTY: AuditionData = {
-  fullName: "", stageName: "", dob: "", age: "", nationality: "", ethnicity: "",
+  fullName: "", dob: "", age: "", nationality: "", ethnicity: "",
   gender: [], bloodType: "", phone: "", email: "",
   address: "", photoBase64: "",
   measureWeight: "", heightWithoutHeels: "", heightWithHeels: "",
@@ -457,16 +457,15 @@ export function ModelRegistrationForm() {
   // ── Validation (all fields required) ─────────────────────────────────────
   const validate = (): string | null => {
     if (!form.fullName.trim()) return "Full name is required.";
-    if (!form.stageName.trim()) return "Stage name is required.";
+    if (!form.phone.trim()) return "Phone number is required.";
+    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      return "A valid email address is required.";
     if (!form.dob) return "Date of birth is required.";
     if (!form.age.trim()) return "Age is required.";
     if (!form.nationality.trim()) return "Nationality is required.";
     if (!form.ethnicity.trim()) return "Ethnicity is required.";
     if (form.gender.length === 0) return "Please select a gender.";
     if (!form.bloodType.trim()) return "Blood type is required.";
-    if (!form.phone.trim()) return "Phone number is required.";
-    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      return "A valid email address is required.";
     if (!form.address.trim()) return "Address is required.";
     if (!form.photoBase64) return "Please upload a photo.";
     if (!form.measureWeight.trim()) return "Measurement weight is required.";
@@ -561,24 +560,19 @@ export function ModelRegistrationForm() {
             <div className="col-fields-photo">
               <div className="field-stack">
                 <TextInput label="Full Name" value={form.fullName} onChange={set("fullName")} required />
-                <TextInput label="Stage Name" value={form.stageName} onChange={set("stageName")} required />
-                <div className="col-2">
-                  <TextInput label="Date of Birth" value={form.dob} onChange={set("dob")} type="date" required />
-                  <TextInput label="Age" value={form.age} onChange={set("age")} type="number" required />
-                  <TextInput label="Nationality" value={form.nationality} onChange={set("nationality")} required />
-                  <TextInput label="Ethnicity" value={form.ethnicity} onChange={set("ethnicity")} required />
-                </div>
+                <TextInput label="Mobile Number" value={form.phone} onChange={set("phone")} type="tel" required />
+                <TextInput label="E-Mail" value={form.email} onChange={set("email")} type="email" required />
+                <TextInput label="Date of Birth" value={form.dob} onChange={set("dob")} type="date" required />
+                <TextInput label="Age" value={form.age} onChange={set("age")} type="number" required />
+                <TextInput label="Nationality" value={form.nationality} onChange={set("nationality")} required />
+                <TextInput label="Ethnicity" value={form.ethnicity} onChange={set("ethnicity")} required />
                 <CheckboxGroup
                   label="Gender"
                   options={["MALE", "FEMALE", "NON-BINARY", "OTHER"]}
                   selected={form.gender}
                   onChange={(v) => setForm((f) => ({ ...f, gender: v }))}
                 />
-                <div className="col-2">
-                  <TextInput label="Blood Type" value={form.bloodType} onChange={set("bloodType")} required />
-                  <TextInput label="Phone Number" value={form.phone} onChange={set("phone")} type="tel" required />
-                </div>
-                <TextInput label="E-Mail" value={form.email} onChange={set("email")} type="email" required />
+                <TextInput label="Blood Type" value={form.bloodType} onChange={set("bloodType")} required />
                 <TextInput label="Address" value={form.address} onChange={set("address")} required />
               </div>
 
@@ -786,7 +780,7 @@ export function ModelRegistrationForm() {
               <p className="text-xs text-[#666] uppercase tracking-wider leading-relaxed">
                 I hereby declare that the information provided above is true and accurate.
                 I understand that A7 Entertainment reserves the right to use my information and
-                photos/videos for audition purposes only. I agree to the terms and conditions set by A7 Entertainment.
+                photos/videos for audition purposes only. I agree to the terms and conditions set by A7 Entertainment and Parker Models.
               </p>
               <label className="flex items-center gap-3 cursor-pointer group w-fit" data-cursor-hover>
                 <div
@@ -814,7 +808,12 @@ export function ModelRegistrationForm() {
                   onChange={set("signatureName")}
                   required
                 />
-                <TextInput label="Date" value={form.signatureDate} onChange={set("signatureDate")} type="date" />
+                <div className="flex flex-col justify-end border-b border-[#333] pb-1">
+                  <Label>Date</Label>
+                  <div className="text-white text-sm py-1">
+                    {new Date(form.signatureDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                  </div>
+                </div>
               </div>
             </div>
 

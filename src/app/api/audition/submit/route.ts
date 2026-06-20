@@ -11,7 +11,7 @@ export const maxDuration = 30;
 
 // ─── Google Sheet columns (in order) ────────────────────────────────────────
 const SHEET_HEADERS = [
-  "Timestamp", "Full Name", "Stage Name", "Date of Birth", "Age",
+  "Timestamp", "Full Name", "Date of Birth", "Age",
   "Nationality", "Ethnicity", "Gender",
   "Blood Type", "Phone", "Email", "Address",
   "Meas. Weight", "Height Without Heels", "Height With Heels",
@@ -63,7 +63,6 @@ function buildAdminHtml(data: AuditionData, ts: string): string {
   <tr><td style="padding:32px 48px 8px;">
     <p style="margin:0 0 4px;font-size:10px;letter-spacing:0.4em;color:#FF0000;text-transform:uppercase;">Model Registration</p>
     <h1 style="margin:0;font-size:26px;font-weight:700;color:#ffffff;">${escapeHtml(data.fullName)}</h1>
-    ${data.stageName ? `<p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.5);">Stage name: ${escapeHtml(data.stageName)}</p>` : ""}
   </td></tr>
   <tr><td style="padding:16px 48px 0;"><div style="width:48px;height:3px;background:#FF0000;"></div></td></tr>
   <tr><td style="padding:24px 48px;">
@@ -135,7 +134,6 @@ function buildSheetRow(data: AuditionData): string[] {
   return [
     new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
     data.fullName,
-    data.stageName,
     data.dob,
     data.age,
     data.nationality,

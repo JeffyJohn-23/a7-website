@@ -13,15 +13,13 @@ export const maxDuration = 30;
 const SHEET_HEADERS = [
   "Timestamp", "Full Name", "Date of Birth", "Age",
   "Nationality", "Ethnicity", "Gender",
-  "Blood Type", "Phone", "Email", "Address",
-  "Meas. Weight", "Height Without Heels", "Height With Heels",
-  "Hair", "Eyes", "Complexion", "Bust/Chest", "Upper Waist", "Lower Waist",
-  "Hips", "Body Type",
-  "Audition Categories", "Language Skills",
+  "Blood Group", "Phone", "Email", "Address",
+  "Meas. Weight", "Height Without Heels",
+  "Hair Colour", "Eye Colour", "Bust/Chest", "Trouser Waist", "Hips",
+  "Language Skills",
   "About You", "Experience",
   "Skill 1", "Skill 2", "Skill 3", "Skill 4",
-  "Audition Link",
-  "Instagram URL", "Snapchat URL", "Threads URL", "Other Social URL",
+  "Instagram URL",
   "Agreed to Terms", "Signature Name",
 ];
 
@@ -47,7 +45,6 @@ function field(label: string, value: string) {
 
 function buildAdminHtml(data: AuditionData, ts: string): string {
   const g = data.gender.join(", ");
-  const cats = data.auditionCategories.join(", ");
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"/><title>Model Registration</title></head>
@@ -73,7 +70,6 @@ function buildAdminHtml(data: AuditionData, ts: string): string {
       ${field("Age", data.age)}
       ${field("Gender", g)}
       ${field("Nationality", data.nationality)}
-      ${field("Audition For", cats)}
       ${field("Languages", data.languageSkills)}
       ${field("Instagram", data.instagram)}
     </table>
@@ -139,22 +135,17 @@ function buildSheetRow(data: AuditionData): string[] {
     data.nationality,
     data.ethnicity,
     data.gender.join(", "),
-    data.bloodType,
+    data.bloodGroup,
     data.phone,
     data.email,
     data.address,
     data.measureWeight,
     data.heightWithoutHeels,
-    data.heightWithHeels,
-    data.hair,
-    data.eyes,
-    data.complexion,
+    data.hairColour,
+    data.eyeColour,
     data.bustChest,
-    data.upperWaist,
-    data.lowerWaist,
+    data.trouser,
     data.hips,
-    data.bodyType,
-    data.auditionCategories.join(", "),
     data.languageSkills,
     data.aboutYou,
     data.experience,
@@ -162,11 +153,7 @@ function buildSheetRow(data: AuditionData): string[] {
     data.skill2,
     data.skill3,
     data.skill4,
-    data.auditionLink,
     data.instagram,
-    data.snapchat,
-    data.threads,
-    data.otherSocial,
     data.agreedToTerms ? "Yes" : "No",
     data.signatureName,
   ];
@@ -199,7 +186,7 @@ async function appendToGoogleSheet(data: AuditionData): Promise<void> {
 
   await sheets.spreadsheets.values.append({
     spreadsheetId: sheetId,
-    range: "Sheet1!A:AN",
+    range: "Sheet1!A:AB",
     valueInputOption: "USER_ENTERED",
     requestBody: { values: [buildSheetRow(data)] },
   });
@@ -239,8 +226,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate PDF — cast needed because renderToBuffer types expect DocumentProps
-    // but our wrapper component renders a <Document> internally
+    // Generate PDF
     const pdfElement = React.createElement(AuditionPDF, { data: body });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pdfBuffer = await renderToBuffer(pdfElement as any);

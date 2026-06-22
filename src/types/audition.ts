@@ -6,7 +6,7 @@ export type AuditionData = {
   nationality: string;
   ethnicity: string;
   gender: string[];
-  bloodType: string;
+  bloodGroup: string;
   phone: string;
   email: string;
   address: string;
@@ -15,44 +15,31 @@ export type AuditionData = {
   // Section 2 — Measurements
   measureWeight: string;
   heightWithoutHeels: string;
-  heightWithHeels: string;
-  hair: string;
-  eyes: string;
-  complexion: string;
+  hairColour: string;
+  eyeColour: string;
   bustChest: string;
-  upperWaist: string;
-  lowerWaist: string;
+  trouser: string;
   hips: string;
-  bodyType: string;
 
-  // Section 3 — Audition Category
-  auditionCategories: string[];
-
-  // Section 4 — Language Skills
+  // Section 3 — Language Skills
   languageSkills: string;
 
-  // Section 5 — About You (5 bullet points joined with \n)
+  // Section 4 — About You (max 250 chars)
   aboutYou: string;
 
-  // Section 6 — Experience (5 bullet points joined with \n)
+  // Section 5 — Experience (max 250 chars)
   experience: string;
 
-  // Section 7 — Skills
+  // Section 6 — Skills
   skill1: string;
   skill2: string;
   skill3: string;
   skill4: string;
 
-  // Section 8 — Audition Link
-  auditionLink: string;
-
-  // Section 9 — Social Media (full URLs)
+  // Section 7 — Social Media (full URLs)
   instagram: string;
-  snapchat: string;
-  threads: string;
-  otherSocial: string;
 
-  // Section 10 — Agreement
+  // Section 8 — Agreement
   agreedToTerms: boolean;
   signatureName: string;
   signatureDate: string;

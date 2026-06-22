@@ -92,13 +92,13 @@ const s = StyleSheet.create({
   // ── Two-column block ──
   twoCol: { flexDirection: 'row', gap: 20 },
   col: { flex: 1 },
-  // ── Bullet points (About You / Experience) ──
-  bulletBlock: {
+  // ── Text block (About You / Experience) ──
+  textBlock: {
     borderWidth: 0.5, borderColor: BORDER, borderStyle: 'solid',
-    backgroundColor: LIGHT_BG, padding: 5, minHeight: 55,
+    backgroundColor: LIGHT_BG, padding: 5, minHeight: 40,
   },
-  bulletLine: { fontSize: 7.5, color: BLACK, lineHeight: 1.6, marginBottom: 1 },
-  bulletEmpty: { fontSize: 7.5, color: LIGHT },
+  textBlockValue: { fontSize: 7.5, color: BLACK, lineHeight: 1.5 },
+  textBlockEmpty: { fontSize: 7.5, color: LIGHT },
   // ── Agreement ──
   agreementText: { fontSize: 6.5, color: GRAY, lineHeight: 1.5, marginBottom: 6 },
   sigRow: { flexDirection: 'row', gap: 20, marginTop: 4 },
@@ -149,14 +149,12 @@ function CheckItem({ label, checked }: { label: string; checked: boolean }) {
   );
 }
 
-// Renders the \n-separated bullet string as individual Text lines.
-function BulletBlock({ value }: { value: string }) {
-  const lines = value ? value.split('\n').filter(Boolean) : [];
+function TextBlock({ value }: { value: string }) {
   return (
-    <View style={s.bulletBlock}>
-      {lines.length > 0
-        ? lines.map((line, i) => <Text key={i} style={s.bulletLine}>{line}</Text>)
-        : <Text style={s.bulletEmpty}>—</Text>
+    <View style={s.textBlock}>
+      {value
+        ? <Text style={s.textBlockValue}>{value}</Text>
+        : <Text style={s.textBlockEmpty}>—</Text>
       }
     </View>
   );
@@ -210,7 +208,7 @@ export function AuditionPDF({ data }: { data: AuditionData }) {
                 </View>
               </View>
               <Row>
-                <Field label="Blood Type" value={data.bloodType} />
+                <Field label="Blood Group" value={data.bloodGroup} />
                 <Field label="Phone" value={data.phone} />
               </Row>
               <Row>
@@ -239,90 +237,65 @@ export function AuditionPDF({ data }: { data: AuditionData }) {
                 <Field label="Height Without Heels" value={data.heightWithoutHeels} />
               </Row>
               <Row>
-                <Field label="Height With Heels" value={data.heightWithHeels} />
                 <Field label="Bust / Chest" value={data.bustChest} />
-              </Row>
-              <Row>
-                <Field label="Upper Waist" value={data.upperWaist} />
-                <Field label="Lower Waist" value={data.lowerWaist} />
+                <Field label="Trouser Waist" value={data.trouser} />
               </Row>
             </View>
             <View style={s.col}>
               <Row>
                 <Field label="Hips" value={data.hips} />
-                <Field label="Hair" value={data.hair} />
+                <Field label="Hair Colour" value={data.hairColour} />
               </Row>
               <Row>
-                <Field label="Eyes" value={data.eyes} />
-                <Field label="Complexion" value={data.complexion} />
+                <Field label="Eye Colour" value={data.eyeColour} />
               </Row>
-              <Row><Field label="Body Type" value={data.bodyType} /></Row>
             </View>
           </View>
         </View>
 
-        {/* ── Sections 3 & 4 – Audition Category + Language Skills ── */}
+        {/* ── Section 3 – Language Skills ── */}
+        <View style={s.section}>
+          <SectionHeader num={3} title="LANGUAGE SKILLS" />
+          <Text style={data.languageSkills ? s.fieldValue : s.fieldValueEmpty}>
+            {data.languageSkills || '—'}
+          </Text>
+        </View>
+
+        {/* ── Sections 4 & 5 – About You + Experience ── */}
         <View style={[s.section, { flexDirection: 'row', gap: 20 }]}>
           <View style={{ flex: 1 }}>
-            <SectionHeader num={3} title="AUDITION CATEGORY" />
-            <View style={s.checkRow}>
-              {['RAMP', 'CATALOGUE', 'MOVIES', 'WEB SERIES', 'MUSIC'].map((c) => (
-                <CheckItem key={c} label={c} checked={data.auditionCategories.includes(c)} />
-              ))}
+            <SectionHeader num={4} title="ABOUT YOU" />
+            <TextBlock value={data.aboutYou} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <SectionHeader num={5} title="EXPERIENCE" />
+            <TextBlock value={data.experience} />
+          </View>
+        </View>
+
+        {/* ── Section 6 – Skills ── */}
+        <View style={s.section}>
+          <SectionHeader num={6} title="SKILLS" />
+          <View style={s.twoCol}>
+            <View style={s.col}>
+              <Row><Field label="Skill 1" value={data.skill1} /></Row>
+              <Row><Field label="Skill 3" value={data.skill3} /></Row>
+            </View>
+            <View style={s.col}>
+              <Row><Field label="Skill 2" value={data.skill2} /></Row>
+              <Row><Field label="Skill 4" value={data.skill4} /></Row>
             </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <SectionHeader num={4} title="LANGUAGE SKILLS" />
-            <Text style={data.languageSkills ? s.fieldValue : s.fieldValueEmpty}>
-              {data.languageSkills || '—'}
-            </Text>
-          </View>
         </View>
 
-        {/* ── Sections 5 & 6 – About You + Experience ── */}
+        {/* ── Sections 7 & 8 – Social Media + Agreement ── */}
         <View style={[s.section, { flexDirection: 'row', gap: 20 }]}>
           <View style={{ flex: 1 }}>
-            <SectionHeader num={5} title="ABOUT YOU" />
-            <BulletBlock value={data.aboutYou} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <SectionHeader num={6} title="EXPERIENCE" />
-            <BulletBlock value={data.experience} />
-          </View>
-        </View>
-
-        {/* ── Sections 7 & 8 – Skills + Audition Link ── */}
-        <View style={[s.section, { flexDirection: 'row', gap: 20 }]}>
-          <View style={{ flex: 1 }}>
-            <SectionHeader num={7} title="SKILLS" />
-            <View style={s.twoCol}>
-              <View style={s.col}>
-                <Row><Field label="Skill 1" value={data.skill1} /></Row>
-                <Row><Field label="Skill 3" value={data.skill3} /></Row>
-              </View>
-              <View style={s.col}>
-                <Row><Field label="Skill 2" value={data.skill2} /></Row>
-                <Row><Field label="Skill 4" value={data.skill4} /></Row>
-              </View>
-            </View>
-          </View>
-          <View style={{ flex: 1 }}>
-            <SectionHeader num={8} title="AUDITION LINK" />
-            <Row><Field label="Audition Video / Reel URL" value={data.auditionLink} /></Row>
-          </View>
-        </View>
-
-        {/* ── Sections 9 & 10 – Social Media + Agreement ── */}
-        <View style={[s.section, { flexDirection: 'row', gap: 20 }]}>
-          <View style={{ flex: 1 }}>
-            <SectionHeader num={9} title="SOCIAL MEDIA" />
+            <SectionHeader num={7} title="SOCIAL MEDIA" />
             <Row><Field label="Instagram" value={data.instagram} /></Row>
-            <Row><Field label="Snapchat" value={data.snapchat} /></Row>
-            <Row><Field label="Threads" value={data.threads} /></Row>
-            <Row><Field label="Other" value={data.otherSocial} /></Row>
           </View>
           <View style={{ flex: 1 }}>
-            <SectionHeader num={10} title="AGREEMENT" />
+            <SectionHeader num={8} title="AGREEMENT" />
             <Text style={s.agreementText}>
               I HEREBY DECLARE THAT THE INFORMATION PROVIDED ABOVE IS TRUE AND ACCURATE.
               I UNDERSTAND THAT A7 ENTERTAINMENT RESERVES THE RIGHT TO USE MY INFORMATION

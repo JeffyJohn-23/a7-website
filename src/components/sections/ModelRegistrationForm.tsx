@@ -7,21 +7,17 @@ import type { AuditionData } from "@/types/audition";
 
 const EMPTY: AuditionData = {
   fullName: "", dob: "", age: "", nationality: "", ethnicity: "",
-  gender: [], bloodType: "", phone: "", email: "",
+  gender: [], bloodGroup: "", phone: "", email: "",
   address: "", photoBase64: "",
-  measureWeight: "", heightWithoutHeels: "", heightWithHeels: "",
-  hair: "", eyes: "", complexion: "", bustChest: "",
-  upperWaist: "", lowerWaist: "", hips: "", bodyType: "",
-  auditionCategories: [],
+  measureWeight: "", heightWithoutHeels: "",
+  hairColour: "", eyeColour: "", bustChest: "",
+  trouser: "", hips: "",
   languageSkills: "", aboutYou: "", experience: "",
   skill1: "", skill2: "", skill3: "", skill4: "",
-  auditionLink: "",
-  instagram: "", snapchat: "", threads: "", otherSocial: "",
+  instagram: "",
   agreedToTerms: false, signatureName: "",
   signatureDate: new Date().toISOString().split("T")[0],
 };
-
-const EMPTY_POINTS: string[] = ["", "", "", "", ""];
 
 // ─── sub-components ───────────────────────────────────────────────────────────
 
@@ -88,6 +84,30 @@ function TextInput({
   );
 }
 
+function TextareaInput({
+  label, value, onChange, maxLength = 250, placeholder = "", required = false,
+}: {
+  label: string; value: string; onChange: (v: string) => void;
+  maxLength?: number; placeholder?: string; required?: boolean;
+}) {
+  return (
+    <div className="flex flex-col border-b border-[#333] pb-1 focus-within:border-[#FF0000] transition-colors">
+      <Label>{label}{required && <span className="text-[#FF0000]"> *</span>}</Label>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value.slice(0, maxLength))}
+        maxLength={maxLength}
+        placeholder={placeholder}
+        rows={3}
+        className="bg-[#000000] text-white text-sm py-1 outline-none placeholder:text-white/20 resize-none"
+        style={{ WebkitBoxShadow: "0 0 0 1000px #000000 inset", WebkitTextFillColor: "white", border: "none" }}
+        data-cursor-hover
+      />
+      <span className="text-[8px] text-[#555] mt-1 text-right">{value.length}/{maxLength}</span>
+    </div>
+  );
+}
+
 function CheckboxGroup({
   label, options, selected, onChange,
 }: {
@@ -133,47 +153,6 @@ function CheckboxGroup({
   );
 }
 
-// 5 bullet-point inputs — each point is an independent text field (max 200 chars each).
-// The parent joins non-empty points into a single \n-delimited string for storage.
-function BulletInputGroup({
-  points, onUpdate,
-}: {
-  points: string[]; onUpdate: (i: number, v: string) => void;
-}) {
-  const MAX_CHAR_PER_POINT = 200;
-  const totalChars = points.reduce((sum, p) => sum + p.length, 0);
-  const maxTotal = MAX_CHAR_PER_POINT * points.length;
-
-  return (
-    <div>
-      <div className="field-stack">
-        {points.map((point, i) => (
-          <div
-            key={i}
-            className="border-b border-[#333] pb-1 focus-within:border-[#FF0000] transition-colors flex items-center gap-2"
-          >
-            <span className="text-[#555] text-xs flex-shrink-0">•</span>
-            <div className="flex-1 flex flex-col">
-              <input
-                type="text"
-                value={point}
-                onChange={(e) => onUpdate(i, e.target.value.slice(0, MAX_CHAR_PER_POINT))}
-                maxLength={MAX_CHAR_PER_POINT}
-                placeholder=""
-                className="bg-[#000] text-white text-sm py-1 outline-none placeholder:text-white/20"
-                style={{ border: "none", WebkitBoxShadow: "0 0 0 1000px #000 inset", WebkitTextFillColor: "white" }}
-                data-cursor-hover
-              />
-              <span className="text-[8px] text-[#555] mt-1 text-right">{point.length}/{MAX_CHAR_PER_POINT}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-      <p className="text-[8px] text-[#555] mt-2 text-right">Total: {totalChars}/{maxTotal} characters</p>
-    </div>
-  );
-}
-
 function SkillInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div className="border-b border-[#333] pb-1 focus-within:border-[#FF0000] transition-colors flex items-center gap-2">
@@ -197,8 +176,6 @@ export function ModelRegistrationForm() {
   const [form, setForm] = useState<AuditionData>(EMPTY);
   // rawPhoto = compressed source used for drag manipulation; never cropped
   const [rawPhoto, setRawPhoto] = useState<string>("");
-  const [aboutPoints, setAboutPoints] = useState<string[]>([...EMPTY_POINTS]);
-  const [expPoints, setExpPoints] = useState<string[]>([...EMPTY_POINTS]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -225,24 +202,6 @@ export function ModelRegistrationForm() {
   const set = (field: keyof AuditionData) => (v: string) =>
     setForm((f) => ({ ...f, [field]: v }));
 
-  const updateAboutPoint = (i: number, v: string) => {
-    const pts = aboutPoints.map((p, j) => (j === i ? v : p));
-    setAboutPoints(pts);
-    setForm((f) => ({
-      ...f,
-      aboutYou: pts.filter((p) => p.trim()).map((p) => "• " + p).join("\n"),
-    }));
-  };
-
-  const updateExpPoint = (i: number, v: string) => {
-    const pts = expPoints.map((p, j) => (j === i ? v : p));
-    setExpPoints(pts);
-    setForm((f) => ({
-      ...f,
-      experience: pts.filter((p) => p.trim()).map((p) => "• " + p).join("\n"),
-    }));
-  };
-
   const reset = () => {
     setForm(EMPTY);
     setRawPhoto("");
@@ -251,8 +210,6 @@ export function ModelRegistrationForm() {
     setZoomLevel(1.0);
     setHasDragged(false);
     setCropConfirmed(false);
-    setAboutPoints([...EMPTY_POINTS]);
-    setExpPoints([...EMPTY_POINTS]);
     setStatus("idle");
     setErrorMsg("");
   };
@@ -454,7 +411,7 @@ export function ModelRegistrationForm() {
     img.src = rawPhoto;
   }, [rawPhoto, photoOffset, photoScale]);
 
-  // ── Validation (all fields required) ─────────────────────────────────────
+  // ── Validation ────────────────────────────────────────────────────────────
   const validate = (): string | null => {
     if (!form.fullName.trim()) return "Full name is required.";
     if (!form.phone.trim()) return "Phone number is required.";
@@ -465,26 +422,20 @@ export function ModelRegistrationForm() {
     if (!form.nationality.trim()) return "Nationality is required.";
     if (!form.ethnicity.trim()) return "Ethnicity is required.";
     if (form.gender.length === 0) return "Please select a gender.";
-    if (!form.bloodType.trim()) return "Blood type is required.";
+    if (!form.bloodGroup.trim()) return "Blood group is required.";
     if (!form.address.trim()) return "Address is required.";
     if (!form.photoBase64) return "Please upload a photo.";
-    if (!form.measureWeight.trim()) return "Measurement weight is required.";
+    if (!form.measureWeight.trim()) return "Weight is required.";
     if (!form.heightWithoutHeels.trim()) return "Height without heels is required.";
-    if (!form.heightWithHeels.trim()) return "Height with heels is required.";
-    if (!form.hair.trim()) return "Hair is required.";
-    if (!form.eyes.trim()) return "Eyes is required.";
-    if (!form.complexion.trim()) return "Complexion is required.";
+    if (!form.hairColour.trim()) return "Hair colour is required.";
+    if (!form.eyeColour.trim()) return "Eye colour is required.";
     if (!form.bustChest.trim()) return "Bust / Chest is required.";
-    if (!form.upperWaist.trim()) return "Upper waist is required.";
-    if (!form.lowerWaist.trim()) return "Lower waist is required.";
+    if (!form.trouser.trim()) return "Trouser waist measurement is required.";
     if (!form.hips.trim()) return "Hips is required.";
-    if (!form.bodyType.trim()) return "Body type is required.";
-    if (form.auditionCategories.length === 0) return "Please select at least one audition category.";
     if (!form.languageSkills.trim()) return "Language skills are required.";
-    if (!form.aboutYou.trim()) return "Please fill in at least one point in About You.";
-    if (!form.experience.trim()) return "Please fill in at least one point in Experience.";
+    if (!form.aboutYou.trim()) return "About You is required.";
+    if (!form.experience.trim()) return "Experience is required.";
     if (!form.skill1.trim()) return "At least one skill is required.";
-    if (!form.auditionLink.trim()) return "Audition link is required.";
     if (!form.instagram.trim()) return "Instagram URL is required.";
     if (!form.agreedToTerms) return "You must agree to the terms.";
     if (!form.signatureName.trim()) return "Signature (full name) is required.";
@@ -572,13 +523,13 @@ export function ModelRegistrationForm() {
                   selected={form.gender}
                   onChange={(v) => setForm((f) => ({ ...f, gender: v }))}
                 />
-                <TextInput label="Blood Type" value={form.bloodType} onChange={set("bloodType")} required />
+                <TextInput label="Blood Group" value={form.bloodGroup} onChange={set("bloodGroup")} required />
                 <TextInput label="Address" value={form.address} onChange={set("address")} required />
               </div>
 
-              {/* Photo upload — drag-to-reposition */}
+              {/* Photo upload — file only, drag-to-reposition */}
               <div className="flex flex-col">
-                <Label>Photo (4×5cm) / ID / Selfie <span className="text-[#FF0000]">*</span></Label>
+                <Label>Photo (4×5cm) / ID <span className="text-[#FF0000]">*</span></Label>
 
                 {rawPhoto ? (
                   <>
@@ -667,11 +618,18 @@ export function ModelRegistrationForm() {
                       <circle cx="12" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
                       <path d="M4 19c0-3.314 3.582-6 8-6s8 2.686 8 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
-                    <span className="text-white/30 text-[10px] text-center tracking-widest uppercase">Click to Upload</span>
+                    <span className="text-white/30 text-[10px] text-center tracking-widest uppercase">Click to Upload File</span>
                   </button>
                 )}
 
-                <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
+                {/* accept specific MIME types to minimise camera option on mobile */}
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
+                  onChange={handlePhoto}
+                  className="hidden"
+                />
               </div>
             </div>
           </section>
@@ -683,35 +641,20 @@ export function ModelRegistrationForm() {
               <div className="field-stack">
                 <TextInput label="Weight" value={form.measureWeight} onChange={set("measureWeight")} required />
                 <TextInput label="Height Without Heels" value={form.heightWithoutHeels} onChange={set("heightWithoutHeels")} required />
-                <TextInput label="Height With Heels" value={form.heightWithHeels} onChange={set("heightWithHeels")} required />
                 <TextInput label="Bust / Chest" value={form.bustChest} onChange={set("bustChest")} required />
-                <TextInput label="Upper Waist" value={form.upperWaist} onChange={set("upperWaist")} required />
-                <TextInput label="Lower Waist" value={form.lowerWaist} onChange={set("lowerWaist")} required />
+                <TextInput label="Trouser Waist" value={form.trouser} onChange={set("trouser")} required />
               </div>
               <div className="field-stack">
                 <TextInput label="Hips" value={form.hips} onChange={set("hips")} required />
-                <TextInput label="Hair" value={form.hair} onChange={set("hair")} required />
-                <TextInput label="Eyes" value={form.eyes} onChange={set("eyes")} required />
-                <TextInput label="Complexion" value={form.complexion} onChange={set("complexion")} required />
-                <TextInput label="Body Type" value={form.bodyType} onChange={set("bodyType")} required />
+                <TextInput label="Hair Colour" value={form.hairColour} onChange={set("hairColour")} required />
+                <TextInput label="Eye Colour" value={form.eyeColour} onChange={set("eyeColour")} required />
               </div>
             </div>
           </section>
 
-          {/* ── Section 3 – Audition Category ── */}
+          {/* ── Section 3 – Language Skills ── */}
           <section>
-            <SectionBadge num={3} title="Audition Category" />
-            <CheckboxGroup
-              label=""
-              options={["RAMP", "CATALOGUE", "MOVIES", "WEB SERIES", "MUSIC"]}
-              selected={form.auditionCategories}
-              onChange={(v) => setForm((f) => ({ ...f, auditionCategories: v }))}
-            />
-          </section>
-
-          {/* ── Section 4 – Language Skills ── */}
-          <section>
-            <SectionBadge num={4} title="Language Skills" />
+            <SectionBadge num={3} title="Language Skills" />
             <TextInput
               label="Languages you speak"
               value={form.languageSkills}
@@ -721,23 +664,35 @@ export function ModelRegistrationForm() {
             />
           </section>
 
-          {/* ── Sections 5 & 6 – About You + Experience ── */}
+          {/* ── Sections 4 & 5 – About You + Experience ── */}
           <div className="col-2 items-stretch">
             <section className="flex flex-col">
-              <SectionBadge num={5} title="About You" />
-              <Helper>Add up to 5 points about yourself.</Helper>
-              <BulletInputGroup points={aboutPoints} onUpdate={updateAboutPoint} />
+              <SectionBadge num={4} title="About You" />
+              <Helper>Brief description about yourself (max 250 characters).</Helper>
+              <TextareaInput
+                label="About You"
+                value={form.aboutYou}
+                onChange={set("aboutYou")}
+                maxLength={250}
+                required
+              />
             </section>
             <section className="flex flex-col">
-              <SectionBadge num={6} title="Experience" />
-              <Helper>Add up to 5 points about your experience.</Helper>
-              <BulletInputGroup points={expPoints} onUpdate={updateExpPoint} />
+              <SectionBadge num={5} title="Experience" />
+              <Helper>Summarise your relevant experience (max 250 characters).</Helper>
+              <TextareaInput
+                label="Experience"
+                value={form.experience}
+                onChange={set("experience")}
+                maxLength={250}
+                required
+              />
             </section>
           </div>
 
-          {/* ── Section 7 – Skills ── */}
+          {/* ── Section 6 – Skills ── */}
           <section>
-            <SectionBadge num={7} title="Skills" />
+            <SectionBadge num={6} title="Skills" />
             <Helper>List skills related to the audition category.</Helper>
             <div className="col-2">
               <SkillInput value={form.skill1} onChange={set("skill1")} />
@@ -747,35 +702,18 @@ export function ModelRegistrationForm() {
             </div>
           </section>
 
-          {/* ── Section 8 – Audition Link ── */}
+          {/* ── Section 7 – Social Media ── */}
           <section>
-            <SectionBadge num={8} title="Audition Link" />
-            <Helper>Share a link to your audition video, Instagram reel, or any other media.</Helper>
-            <TextInput
-              label="Audition Video / Reel URL"
-              value={form.auditionLink}
-              onChange={set("auditionLink")}
-              type="url"
-              placeholder="https://"
-              required
-            />
-          </section>
-
-          {/* ── Section 9 – Social Media ── */}
-          <section>
-            <SectionBadge num={9} title="Social Media" />
+            <SectionBadge num={7} title="Social Media" />
             <Helper>Provide your profile links (full URL).</Helper>
             <div className="col-2">
               <TextInput label="Instagram" value={form.instagram} onChange={set("instagram")} type="url" placeholder="https://instagram.com/username" required />
-              <TextInput label="Snapchat" value={form.snapchat} onChange={set("snapchat")} type="url" placeholder="https://www.snapchat.com/add/username" />
-              <TextInput label="Threads" value={form.threads} onChange={set("threads")} type="url" placeholder="https://www.threads.net/@username" />
-              <TextInput label="Other Social Media" value={form.otherSocial} onChange={set("otherSocial")} type="url" placeholder="https://" />
             </div>
           </section>
 
-          {/* ── Section 10 – Agreement ── */}
+          {/* ── Section 8 – Agreement ── */}
           <section>
-            <SectionBadge num={10} title="Agreement" />
+            <SectionBadge num={8} title="Agreement" />
             <div className="field-stack">
               <p className="text-xs text-[#666] uppercase tracking-wider leading-relaxed">
                 I hereby declare that the information provided above is true and accurate.

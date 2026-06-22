@@ -27,10 +27,10 @@ export default function ModelRegistrationPage() {
           {/* <p className="text-[#FF0000] text-[10px] tracking-[0.4em] uppercase mb-3">
             A7 Entertainment
           </p> */}
-          <h1 className="text-[#FF0000] text-4xl md:text-5xl font-bold leading-tight mb-3">
+          <h1 className="font-display font-black text-[#FF0000] text-4xl md:text-5xl leading-tight mb-3">
             REGISTRATION
           </h1>
-            <h1 className="text-white text-3xl md:text-3xl font-bold leading-tight mb-3">
+          <h1 className="font-display font-black text-white text-3xl md:text-3xl leading-tight mb-3">
             Orion Model Hunt By A7Entertainment & Parker Models.
           </h1>
 

@@ -6,13 +6,13 @@ import type { AuditionData } from "@/types/audition";
 // ─── initial state ────────────────────────────────────────────────────────────
 
 const EMPTY: AuditionData = {
-  fullName: "", dob: "", age: "", nationality: "", ethnicity: "",
-  gender: [], bloodGroup: "", phone: "", email: "",
+  fullName: "", dob: "", age: "", nationality: "",
+  gender: [], phone: "", email: "",
   address: "", photoBase64: "",
-  measureWeight: "", heightWithoutHeels: "",
+  measureWeight: "", height: "",
   hairColour: "", eyeColour: "", bustChest: "",
   trouser: "", hips: "",
-  languageSkills: "", aboutYou: "", experience: "",
+  languageSkills: "", aboutYou: "",
   skill1: "", skill2: "", skill3: "", skill4: "",
   instagram: "",
   agreedToTerms: false, signatureName: "",
@@ -420,13 +420,11 @@ export function ModelRegistrationForm() {
     if (!form.dob) return "Date of birth is required.";
     if (!form.age.trim()) return "Age is required.";
     if (!form.nationality.trim()) return "Nationality is required.";
-    if (!form.ethnicity.trim()) return "Ethnicity is required.";
     if (form.gender.length === 0) return "Please select a gender.";
-    if (!form.bloodGroup.trim()) return "Blood group is required.";
     if (!form.address.trim()) return "Address is required.";
     if (!form.photoBase64) return "Please upload a photo.";
     if (!form.measureWeight.trim()) return "Weight is required.";
-    if (!form.heightWithoutHeels.trim()) return "Height without heels is required.";
+    if (!form.height.trim()) return "Height is required.";
     if (!form.hairColour.trim()) return "Hair colour is required.";
     if (!form.eyeColour.trim()) return "Eye colour is required.";
     if (!form.bustChest.trim()) return "Bust / Chest is required.";
@@ -434,7 +432,6 @@ export function ModelRegistrationForm() {
     if (!form.hips.trim()) return "Hips is required.";
     if (!form.languageSkills.trim()) return "Language skills are required.";
     if (!form.aboutYou.trim()) return "About You is required.";
-    if (!form.experience.trim()) return "Experience is required.";
     if (!form.skill1.trim()) return "At least one skill is required.";
     if (!form.instagram.trim()) return "Instagram URL is required.";
     if (!form.agreedToTerms) return "You must agree to the terms.";
@@ -516,14 +513,12 @@ export function ModelRegistrationForm() {
                 <TextInput label="Date of Birth" value={form.dob} onChange={set("dob")} type="date" required />
                 <TextInput label="Age" value={form.age} onChange={set("age")} type="number" required />
                 <TextInput label="Nationality" value={form.nationality} onChange={set("nationality")} required />
-                <TextInput label="Ethnicity" value={form.ethnicity} onChange={set("ethnicity")} required />
                 <CheckboxGroup
                   label="Gender"
                   options={["MALE", "FEMALE", "NON-BINARY", "OTHER"]}
                   selected={form.gender}
                   onChange={(v) => setForm((f) => ({ ...f, gender: v }))}
                 />
-                <TextInput label="Blood Group" value={form.bloodGroup} onChange={set("bloodGroup")} required />
                 <TextInput label="Address" value={form.address} onChange={set("address")} required />
               </div>
 
@@ -640,7 +635,7 @@ export function ModelRegistrationForm() {
             <div className="col-2">
               <div className="field-stack">
                 <TextInput label="Weight" value={form.measureWeight} onChange={set("measureWeight")} required />
-                <TextInput label="Height Without Heels" value={form.heightWithoutHeels} onChange={set("heightWithoutHeels")} required />
+                <TextInput label="Height" value={form.height} onChange={set("height")} required />
                 <TextInput label="Bust / Chest" value={form.bustChest} onChange={set("bustChest")} required />
                 <TextInput label="Trouser Waist" value={form.trouser} onChange={set("trouser")} required />
               </div>
@@ -664,35 +659,22 @@ export function ModelRegistrationForm() {
             />
           </section>
 
-          {/* ── Sections 4 & 5 – About You + Experience ── */}
-          <div className="col-2 items-stretch">
-            <section className="flex flex-col">
-              <SectionBadge num={4} title="About You" />
-              <Helper>Brief description about yourself (max 250 characters).</Helper>
-              <TextareaInput
-                label="About You"
-                value={form.aboutYou}
-                onChange={set("aboutYou")}
-                maxLength={250}
-                required
-              />
-            </section>
-            <section className="flex flex-col">
-              <SectionBadge num={5} title="Experience" />
-              <Helper>Summarise your relevant experience (max 250 characters).</Helper>
-              <TextareaInput
-                label="Experience"
-                value={form.experience}
-                onChange={set("experience")}
-                maxLength={250}
-                required
-              />
-            </section>
-          </div>
-
-          {/* ── Section 6 – Skills ── */}
+          {/* ── Section 4 – About You ── */}
           <section>
-            <SectionBadge num={6} title="Skills" />
+            <SectionBadge num={4} title="About You" />
+            <Helper>Brief description about yourself (max 250 characters).</Helper>
+            <TextareaInput
+              label="About You"
+              value={form.aboutYou}
+              onChange={set("aboutYou")}
+              maxLength={250}
+              required
+            />
+          </section>
+
+          {/* ── Section 5 – Skills ── */}
+          <section>
+            <SectionBadge num={5} title="Skills" />
             <Helper>List skills related to the audition category.</Helper>
             <div className="col-2">
               <SkillInput value={form.skill1} onChange={set("skill1")} />
@@ -702,18 +684,18 @@ export function ModelRegistrationForm() {
             </div>
           </section>
 
-          {/* ── Section 7 – Social Media ── */}
+          {/* ── Section 6 – Social Media ── */}
           <section>
-            <SectionBadge num={7} title="Social Media" />
+            <SectionBadge num={6} title="Social Media" />
             <Helper>Provide your profile links (full URL).</Helper>
             <div className="col-2">
               <TextInput label="Instagram" value={form.instagram} onChange={set("instagram")} type="url" placeholder="https://instagram.com/username" required />
             </div>
           </section>
 
-          {/* ── Section 8 – Agreement ── */}
+          {/* ── Section 7 – Agreement ── */}
           <section>
-            <SectionBadge num={8} title="Agreement" />
+            <SectionBadge num={7} title="Agreement" />
             <div className="field-stack">
               <p className="text-xs text-[#666] uppercase tracking-wider leading-relaxed">
                 I hereby declare that the information provided above is true and accurate.
@@ -763,7 +745,8 @@ export function ModelRegistrationForm() {
                 <button
                   type="submit"
                   disabled={status === "loading"}
-                  className="group relative overflow-hidden border border-white hover:border-[#FF0000] transition-[border-color] duration-300 text-white text-sm tracking-[0.2em] uppercase px-6 py-3 font-bold disabled:opacity-50 w-full sm:w-auto"
+                  className="group relative overflow-hidden border border-white hover:border-[#FF0000] transition-[border-color] duration-300 text-white text-sm tracking-[0.2em] uppercase py-3 font-bold disabled:opacity-50 w-full sm:w-auto"
+                  style={{ paddingLeft: "0.5rem", paddingRight: "0.5rem" }}
                   data-cursor-hover
                 >
                   {/* Red fill sweeps top → bottom on hover */}

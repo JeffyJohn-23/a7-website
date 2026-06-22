@@ -197,7 +197,6 @@ export function AuditionPDF({ data }: { data: AuditionData }) {
                 <Field label="Date of Birth" value={data.dob} />
                 <Field label="Age" value={data.age} />
                 <Field label="Nationality" value={data.nationality} />
-                <Field label="Ethnicity" value={data.ethnicity} />
               </Row>
               <View style={{ marginBottom: 5 }}>
                 <Text style={s.fieldLabel}>GENDER</Text>
@@ -208,7 +207,6 @@ export function AuditionPDF({ data }: { data: AuditionData }) {
                 </View>
               </View>
               <Row>
-                <Field label="Blood Group" value={data.bloodGroup} />
                 <Field label="Phone" value={data.phone} />
               </Row>
               <Row>
@@ -234,7 +232,7 @@ export function AuditionPDF({ data }: { data: AuditionData }) {
             <View style={s.col}>
               <Row>
                 <Field label="Weight" value={data.measureWeight} />
-                <Field label="Height Without Heels" value={data.heightWithoutHeels} />
+                <Field label="Height" value={data.height} />
               </Row>
               <Row>
                 <Field label="Bust / Chest" value={data.bustChest} />
@@ -261,21 +259,15 @@ export function AuditionPDF({ data }: { data: AuditionData }) {
           </Text>
         </View>
 
-        {/* ── Sections 4 & 5 – About You + Experience ── */}
-        <View style={[s.section, { flexDirection: 'row', gap: 20 }]}>
-          <View style={{ flex: 1 }}>
-            <SectionHeader num={4} title="ABOUT YOU" />
-            <TextBlock value={data.aboutYou} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <SectionHeader num={5} title="EXPERIENCE" />
-            <TextBlock value={data.experience} />
-          </View>
+        {/* ── Section 4 – About You ── */}
+        <View style={s.section}>
+          <SectionHeader num={4} title="ABOUT YOU" />
+          <TextBlock value={data.aboutYou} />
         </View>
 
-        {/* ── Section 6 – Skills ── */}
+        {/* ── Section 5 – Skills ── */}
         <View style={s.section}>
-          <SectionHeader num={6} title="SKILLS" />
+          <SectionHeader num={5} title="SKILLS" />
           <View style={s.twoCol}>
             <View style={s.col}>
               <Row><Field label="Skill 1" value={data.skill1} /></Row>
@@ -288,14 +280,14 @@ export function AuditionPDF({ data }: { data: AuditionData }) {
           </View>
         </View>
 
-        {/* ── Sections 7 & 8 – Social Media + Agreement ── */}
+        {/* ── Sections 6 & 7 – Social Media + Agreement ── */}
         <View style={[s.section, { flexDirection: 'row', gap: 20 }]}>
           <View style={{ flex: 1 }}>
-            <SectionHeader num={7} title="SOCIAL MEDIA" />
+            <SectionHeader num={6} title="SOCIAL MEDIA" />
             <Row><Field label="Instagram" value={data.instagram} /></Row>
           </View>
           <View style={{ flex: 1 }}>
-            <SectionHeader num={8} title="AGREEMENT" />
+            <SectionHeader num={7} title="AGREEMENT" />
             <Text style={s.agreementText}>
               I HEREBY DECLARE THAT THE INFORMATION PROVIDED ABOVE IS TRUE AND ACCURATE.
               I UNDERSTAND THAT A7 ENTERTAINMENT RESERVES THE RIGHT TO USE MY INFORMATION

@@ -4,9 +4,7 @@ export type AuditionData = {
   dob: string;
   age: string;
   nationality: string;
-  ethnicity: string;
   gender: string[];
-  bloodGroup: string;
   phone: string;
   email: string;
   address: string;
@@ -14,7 +12,7 @@ export type AuditionData = {
 
   // Section 2 — Measurements
   measureWeight: string;
-  heightWithoutHeels: string;
+  height: string;
   hairColour: string;
   eyeColour: string;
   bustChest: string;
@@ -27,10 +25,7 @@ export type AuditionData = {
   // Section 4 — About You (max 250 chars)
   aboutYou: string;
 
-  // Section 5 — Experience (max 250 chars)
-  experience: string;
-
-  // Section 6 — Skills
+  // Section 5 — Skills
   skill1: string;
   skill2: string;
   skill3: string;

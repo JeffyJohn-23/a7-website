@@ -12,6 +12,14 @@ export const metadata: Metadata = {
     title: "Model Registration | A7 Entertainment",
     description:
       "Register as a model or talent with A7 Entertainment. Fill in your details and submit your application.",
+    images: [
+      {
+        url: "https://www.a7entertainment.in/model-registration/opengraph-image.png",
+        width: 1997,
+        height: 1412,
+        alt: "Orion Model Hunt — A7 Entertainment & Parker Models",
+      },
+    ],
   },
 };
 

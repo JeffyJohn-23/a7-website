@@ -179,7 +179,7 @@ export function AuditionPDF({ data }: { data: AuditionData }) {
         {/* ── Header ── */}
         <View style={s.headerBar} fixed>
           <View style={s.headerLeft}>
-            <Text style={s.headerBrand}>A7 ENTERTAINMENT</Text>
+            <Text style={s.headerBrand}>A7 ENTERTAINMENT & PARKER MODELS</Text>
             <Text style={s.headerTitle}>REGISTRATION — ORION MODEL HUNT</Text>
           </View>
           <Text style={s.headerDate}>{submittedAt} IST</Text>
@@ -290,9 +290,9 @@ export function AuditionPDF({ data }: { data: AuditionData }) {
             <SectionHeader num={7} title="AGREEMENT" />
             <Text style={s.agreementText}>
               I HEREBY DECLARE THAT THE INFORMATION PROVIDED ABOVE IS TRUE AND ACCURATE.
-              I UNDERSTAND THAT A7 ENTERTAINMENT RESERVES THE RIGHT TO USE MY INFORMATION
+              I UNDERSTAND THAT A7 ENTERTAINMENT & PARKER MODELS RESERVES THE RIGHT TO USE MY INFORMATION
               AND PHOTOS/VIDEOS FOR AUDITION PURPOSES ONLY.
-              I AGREE TO THE TERMS AND CONDITIONS SET BY A7 ENTERTAINMENT.
+              I AGREE TO THE TERMS AND CONDITIONS SET BY A7 ENTERTAINMENT & PARKER MODELS.
             </Text>
             <View style={s.agreedRow}>
               <View style={[s.checkbox, data.agreedToTerms ? s.checkboxFilled : {}]}>
@@ -309,7 +309,7 @@ export function AuditionPDF({ data }: { data: AuditionData }) {
 
         {/* ── Footer ── */}
         <View style={s.pageFooter} fixed>
-          <Text style={s.footerText}>A7 ENTERTAINMENT — ORION MODEL HUNT — CONFIDENTIAL</Text>
+          <Text style={s.footerText}>A7 ENTERTAINMENT & PARKER MODELS — ORION MODEL HUNT — CONFIDENTIAL</Text>
           <Text style={s.footerText} render={({ pageNumber, totalPages }) =>
             `PAGE ${pageNumber} OF ${totalPages}`
           } />

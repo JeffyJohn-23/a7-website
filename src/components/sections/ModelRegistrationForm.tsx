@@ -699,8 +699,8 @@ export function ModelRegistrationForm() {
             <div className="field-stack">
               <p className="text-xs text-[#666] uppercase tracking-wider leading-relaxed">
                 I hereby declare that the information provided above is true and accurate.
-                I understand that A7 Entertainment reserves the right to use my information and
-                photos/videos for audition purposes only. I agree to the terms and conditions set by A7 Entertainment and Parker Models.
+                I understand that A7 Entertainment & Parker Models reserves the right to use my information and
+                photos/videos for audition purposes only. I agree to the terms and conditions set by A7 Entertainment & Parker Models.
               </p>
               <label className="flex items-center gap-3 cursor-pointer group w-fit" data-cursor-hover>
                 <div

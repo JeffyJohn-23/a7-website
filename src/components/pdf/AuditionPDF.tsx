@@ -101,7 +101,7 @@ const s = StyleSheet.create({
   textBlockEmpty: { fontSize: 7.5, color: LIGHT },
   // ── Agreement ──
   agreementText: { fontSize: 6.5, color: GRAY, lineHeight: 1.5, marginBottom: 6 },
-  sigRow: { flexDirection: 'row', gap: 20, marginTop: 4 },
+  sigRow: { flexDirection: 'row', gap: 20, marginTop: 4, alignItems: 'flex-start' },
   agreedRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 },
   agreedLabel: { fontSize: 7, color: BLACK },
   // ── Footer ──

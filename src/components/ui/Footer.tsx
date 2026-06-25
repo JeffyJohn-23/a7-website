@@ -1,10 +1,17 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 const socials = [
   { label: "Instagram", href: "https://www.instagram.com/a7entertainment/" },
   { label: "LinkedIn",  href: "https://www.linkedin.com/company/a7entertainment" },
+];
+
+const legalLinks = [
+  { label: "Privacy", href: "/privacy-policy" },
+  { label: "Terms", href: "/terms-and-conditions" },
+  { label: "Refund", href: "/refund-policy" },
 ];
 
 export function Footer() {
@@ -36,7 +43,7 @@ export function Footer() {
             </span>
           </div>
 
-          {/* Center — social links, hidden on small mobile */}
+          {/* Center — social + legal links, hidden on small mobile */}
           <div className="hidden sm:flex items-center gap-6">
             {socials.map((s) => (
               <a
@@ -52,6 +59,20 @@ export function Footer() {
               >
                 {s.label}
               </a>
+            ))}
+            <span aria-hidden="true" style={{ color: "rgba(255,255,255,0.2)" }}>·</span>
+            {legalLinks.map((l) => (
+              <Link
+                key={l.label}
+                href={l.href}
+                data-cursor-hover
+                className="text-[11px] tracking-[0.25em] uppercase font-sans font-medium transition-colors duration-200"
+                style={{ color: "rgba(255,255,255,0.55)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#FFFFFF")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.55)")}
+              >
+                {l.label}
+              </Link>
             ))}
           </div>
 
@@ -90,6 +111,20 @@ export function Footer() {
           >
             © {new Date().getFullYear()}
           </span>
+        </div>
+
+        {/* Mobile-only legal links row */}
+        <div className="sm:hidden flex items-center gap-5 pb-3">
+          {legalLinks.map((l) => (
+            <Link
+              key={l.label}
+              href={l.href}
+              className="text-[10px] tracking-[0.22em] uppercase font-sans font-medium"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              {l.label}
+            </Link>
+          ))}
         </div>
       </div>
     </footer>

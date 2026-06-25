@@ -215,9 +215,9 @@ export function AboutSection() {
               <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-white/40 pointer-events-none" />
               <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-white/40 pointer-events-none" />
               <div className="absolute bottom-4 left-4 z-10">
-                <span className="text-[9px] tracking-[0.4em] uppercase text-white/55 font-sans bg-black/30 px-2 py-0.5">
+                {/* <span className="text-[9px] tracking-[0.4em] uppercase text-white/55 font-sans bg-black/30 px-2 py-0.5">
                   Live Production
-                </span>
+                </span> */}
               </div>
             </div>
           </div>

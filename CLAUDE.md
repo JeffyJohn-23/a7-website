@@ -13,10 +13,30 @@ npm run lint         # Lint check
 
 > If `npm run dev` fails with exit code 1, port 3000 is already in use. Use `npx next build` to verify correctness instead.
 
-**Environment variable required for the contact form:**
+**Environment variables required:**
 ```
 RESEND_API_KEY=<your-resend-api-key>
+GOOGLE_SERVICE_ACCOUNT_EMAIL=<service-account-email>
+GOOGLE_PRIVATE_KEY=<service-account-private-key>
+GOOGLE_SHEET_ID=<target-google-sheet-id>
 ```
+
+> Only `RESEND_API_KEY` is required for the contact form. The Google Sheets variables are required only if audition submission to Google Sheets is enabled.
+
+---
+
+## Next.js Configuration
+
+**Image Optimization:**
+- Remote patterns configured for Unsplash, Pexels, Pixabay
+- Formats: WebP and AVIF with fallback
+- Minimum cache TTL: 30 days
+- Static assets (jpg, jpeg, png, webp, avif, svg, ico, woff2) cached for 30 days with `immutable` flag
+
+**Security Headers:**
+- `X-Content-Type-Options: nosniff` — prevents MIME-type sniffing
+- `X-Frame-Options: SAMEORIGIN` — prevents clickjacking
+- `Referrer-Policy: strict-origin-when-cross-origin` — controls referrer information
 
 ---
 
@@ -65,6 +85,43 @@ Not imported or rendered anywhere:
 - `src/components/transitions/PageTransition.tsx`
 - `src/components/sections/Hero.tsx` (replaced by `HomeHero`)
 - `src/components/animations/` (empty directory)
+
+---
+
+## Model Registration & Audition System
+
+Separate multi-step form flow for talent auditions.
+
+| Path | Purpose |
+|------|---------|
+| `/model-registration` | Form entry point — `ModelRegistrationPage` renders `ModelRegistrationForm` |
+| `src/components/sections/ModelRegistrationForm.tsx` | Multi-section form (personal info, measurements, skills, agreement) |
+| `src/components/pdf/AuditionPDF.tsx` | React PDF component — renders audition data to PDF buffer |
+| `src/types/audition.ts` | `AuditionData` type — 40+ fields covering personal, physical, skills, social media |
+| `src/app/api/audition/submit` | POST endpoint — generates PDF, emails to applicant via Resend, appends row to Google Sheet (admin tracking) |
+
+**Form Submission Flow:**
+1. User completes all sections in `ModelRegistrationForm`
+2. Data validated client-side; photo captured as base64
+3. POST to `/api/audition/submit` with `AuditionData` JSON + base64 photo
+4. Server: `renderToBuffer(AuditionPDF)` converts React component to PDF binary
+5. Email sent to applicant via `resend.emails.send()`
+6. If Google Sheets enabled: append row to sheet via `google.sheets.spreadsheets.values.append()`
+7. Return success response with submission details
+
+**API Route Specs:**
+- `runtime: "nodejs"` (required for PDF rendering)
+- `maxDuration: 30` seconds (allows time for PDF generation + email + sheet write)
+- Google Sheets integration: uses service account auth (email + private key from env vars)
+- Column order matches `SHEET_HEADERS` constant in route file
+
+**Google Sheets Setup:**
+Requires a service account JSON with:
+- `client_email` → `GOOGLE_SERVICE_ACCOUNT_EMAIL`
+- `private_key` → `GOOGLE_PRIVATE_KEY`
+- Target sheet ID → `GOOGLE_SHEET_ID`
+
+If any Google env var is missing, sheet write is silently skipped (submission still succeeds via email).
 
 ---
 
@@ -211,6 +268,11 @@ cursor: none;        /* Custom cursor; restored on touch via @media (pointer: co
 - **`data-cursor-hover`** on all interactive elements for `CustomCursor` scale effect.
 - **Inline `style={{}}`** for dynamic/JS-computed values and guaranteed padding.
 - **Section IDs** must match nav: `home`, `about`, `services`, `gallery`, `contact`, `faq`.
+
+### PDF Components
+
+- **`AuditionPDF.tsx`** — React PDF document for audition submissions. Renders on server-side via `renderToBuffer()` in `/api/audition/submit`. Use `@react-pdf/renderer` components: `Document`, `Page`, `Text`, `View`, `Image`. All styling is inline (no CSS).
+- **File structure:** `src/components/pdf/` — keep PDF-only components here, separate from UI components.
 
 ---
 

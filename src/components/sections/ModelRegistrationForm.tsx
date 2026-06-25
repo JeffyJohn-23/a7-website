@@ -524,7 +524,7 @@ export function ModelRegistrationForm() {
 
               {/* Photo upload — file only, drag-to-reposition */}
               <div className="flex flex-col">
-                <Label>Photo (4×5cm) / ID <span className="text-[#FF0000]">*</span></Label>
+                <Label>Photo (4×5cm)<span className="text-[#FF0000]">*</span></Label>
 
                 {rawPhoto ? (
                   <>

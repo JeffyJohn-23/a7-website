@@ -212,6 +212,21 @@ img, video, iframe, svg {
   max-width: 100%;
 }
 
+/* Form controls must never exceed their container (date/number inputs have a
+   wide intrinsic size that can overflow narrow mobile screens). */
+input, textarea, select {
+  max-width: 100%;
+}
+
+/* Grid/flex form tracks may shrink below their content's intrinsic width.
+   Without this, an input's min-content size blows the column past the viewport
+   on mobile (the default min-width:auto on grid/flex items). */
+.col-2 > *,
+.col-fields-photo > *,
+.field-stack > * {
+  min-width: 0;
+}
+
 /* Touch-target minimum size for interactive elements */
 @media (pointer: coarse) {
   button, a {

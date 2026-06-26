@@ -1,7 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { verifyWebhookSignature } from "@/lib/razorpay";
 import {
-  isOrderRecorded,
+  isOrderPaid,
   sendPaymentReconciliationAlert,
 } from "@/lib/auditionProcessing";
 import type { PaymentInfo } from "@/types/audition";
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
       after(async () => {
         try {
           await new Promise((resolve) => setTimeout(resolve, RECONCILE_GRACE_MS));
-          if (await isOrderRecorded(orderId)) return; // normal path — submission landed
+          if (await isOrderPaid(orderId)) return; // normal path — submission landed
           const apiKey = process.env.RESEND_API_KEY;
           if (apiKey) await sendPaymentReconciliationAlert(payment, apiKey);
         } catch (err) {

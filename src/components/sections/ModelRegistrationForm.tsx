@@ -532,7 +532,13 @@ export function ModelRegistrationForm() {
         return;
       }
 
-      const orderRes = await fetch("/api/razorpay/create-order", { method: "POST" });
+      const orderRes = await fetch("/api/razorpay/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Send form data (without the heavy photo) so a Pending lead row is
+        // recorded the moment the applicant initiates payment.
+        body: JSON.stringify({ ...form, photoBase64: "" }),
+      });
       const order = await orderRes.json() as {
         success: boolean; orderId?: string; amount?: number;
         currency?: string; keyId?: string; error?: string;

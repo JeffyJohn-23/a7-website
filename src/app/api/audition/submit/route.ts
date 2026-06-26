@@ -3,7 +3,7 @@ import type { AuditionData, PaymentInfo } from "@/types/audition";
 import { verifyPaymentSignature, isRazorpayConfigured } from "@/lib/razorpay";
 import {
   processAuditionSubmission,
-  isOrderRecorded,
+  isOrderPaid,
 } from "@/lib/auditionProcessing";
 import { REGISTRATION_FEE_PAISE, REGISTRATION_FEE_CURRENCY } from "@/lib/registration";
 
@@ -55,8 +55,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // ── 2. Idempotency — replayed order returns success without re-processing ──
-    if (await isOrderRecorded(orderId)) {
+    // ── 2. Idempotency — replayed Paid order returns success without re-processing ──
+    if (await isOrderPaid(orderId)) {
       return NextResponse.json({ success: true, duplicate: true });
     }
 

@@ -26,8 +26,12 @@ export const SHEET_HEADERS = [
 const SHEET_NAME = "Sheet1";
 // A..AD = 30 columns
 const APPEND_RANGE = `${SHEET_NAME}!A:AD`;
-// Order ID lives in column Z (26th column)
-const ORDER_ID_COLUMN_RANGE = `${SHEET_NAME}!Z2:Z`;
+// Payment columns Z:AD — [Order ID, Payment ID, Amount, Status, Paid At]
+const PAYMENT_RANGE = `${SHEET_NAME}!Z2:AD`;
+
+// Payment status values written to the sheet's "Payment Status" column.
+export const STATUS_PENDING = "Pending";
+export const STATUS_PAID = "Paid";
 
 // In-memory dedupe guard. Survives within a warm server instance; the Sheet
 // lookup below covers cross-instance / cold-start cases when Sheets is enabled.
@@ -243,36 +247,11 @@ function getSheetsClient() {
   return { sheets: google.sheets({ version: "v4", auth }), sheetId };
 }
 
-/** True if the order id is already recorded in the registration sheet. */
-export async function isOrderRecorded(orderId: string): Promise<boolean> {
-  if (processedOrderIds.has(orderId)) return true;
-  const client = getSheetsClient();
-  if (!client) return false; // can't verify without Sheets — treat as not recorded
-  const res = await client.sheets.spreadsheets.values.get({
-    spreadsheetId: client.sheetId,
-    range: ORDER_ID_COLUMN_RANGE,
-  });
-  const found = (res.data.values ?? []).some((row) => row[0] === orderId);
-  if (found) processedOrderIds.add(orderId);
-  return found;
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SheetsApi = ReturnType<typeof google.sheets>;
 
-async function appendToGoogleSheet(data: AuditionData): Promise<void> {
-  const client = getSheetsClient();
-  if (!client) {
-    // Paid submission that cannot be persisted to Sheets — log loudly so it can
-    // be reconciled from the admin email + PDF. (Non-fatal by design.)
-    console.error(
-      "[Sheets] GOOGLE_SERVICE_ACCOUNT_JSON / GOOGLE_SHEET_ID not configured — " +
-        `PAID registration NOT recorded to sheet. Order: ${data.payment?.orderId ?? "n/a"}`
-    );
-    return;
-  }
-  const { sheets, sheetId } = client;
-
-  // Ensure the header row spans all columns. Self-heals sheets that were
-  // created with the original 25-column schema (before the payment columns
-  // Z:AD existed) and brand-new empty sheets alike.
+/** Ensure the header row spans all 30 columns (self-heals 25-column sheets). */
+async function ensureHeaders(sheets: SheetsApi, sheetId: string): Promise<void> {
   const check = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
     range: `${SHEET_NAME}!A1:AD1`,
@@ -286,13 +265,99 @@ async function appendToGoogleSheet(data: AuditionData): Promise<void> {
       requestBody: { values: [SHEET_HEADERS] },
     });
   }
+}
 
+/** Locate an order's row (1-based) and its current payment status. */
+async function findOrderRow(
+  sheets: SheetsApi,
+  sheetId: string,
+  orderId: string
+): Promise<{ row: number; status: string } | null> {
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: sheetId,
+    range: PAYMENT_RANGE, // Z2:AD — [orderId, paymentId, amount, status, paidAt]
+  });
+  const rows = res.data.values ?? [];
+  for (let i = 0; i < rows.length; i++) {
+    if (rows[i][0] === orderId) {
+      return { row: i + 2, status: rows[i][3] ?? "" };
+    }
+  }
+  return null;
+}
+
+/** True once an order has reached "Paid" status (deduplication guard). */
+export async function isOrderPaid(orderId: string): Promise<boolean> {
+  if (processedOrderIds.has(orderId)) return true;
+  const client = getSheetsClient();
+  if (!client) return false; // can't verify without Sheets — treat as not paid
+  const found = await findOrderRow(client.sheets, client.sheetId, orderId);
+  const paid = found?.status === STATUS_PAID;
+  if (paid) processedOrderIds.add(orderId);
+  return paid;
+}
+
+/**
+ * Append a "Pending" row when the applicant initiates payment (Proceed to
+ * Payment). Captures the lead even if they never complete checkout. Non-fatal.
+ */
+export async function appendPendingRow(data: AuditionData): Promise<void> {
+  const client = getSheetsClient();
+  if (!client) {
+    console.error(
+      "[Sheets] Not configured — PENDING registration not recorded. " +
+        `Order: ${data.payment?.orderId ?? "n/a"}`
+    );
+    return;
+  }
+  const { sheets, sheetId } = client;
+  await ensureHeaders(sheets, sheetId);
   await sheets.spreadsheets.values.append({
     spreadsheetId: sheetId,
     range: APPEND_RANGE,
     valueInputOption: "USER_ENTERED",
     requestBody: { values: [buildSheetRow(data)] },
   });
+}
+
+/**
+ * Flip the applicant's existing Pending row to Paid (or append a full Paid row
+ * if no Pending row was recorded). Logged loudly but non-fatal on failure.
+ */
+async function recordPaidToSheet(data: AuditionData): Promise<void> {
+  const client = getSheetsClient();
+  const orderId = data.payment?.orderId;
+  if (!client) {
+    console.error(
+      "[Sheets] Not configured — PAID registration not recorded. " +
+        `Order: ${orderId ?? "n/a"}`
+    );
+    return;
+  }
+  const { sheets, sheetId } = client;
+  await ensureHeaders(sheets, sheetId);
+
+  const p = data.payment;
+  const existing = orderId ? await findOrderRow(sheets, sheetId, orderId) : null;
+  if (existing && p) {
+    // Update payment columns (AA:AD) on the pending row → Paid.
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: sheetId,
+      range: `${SHEET_NAME}!AA${existing.row}:AD${existing.row}`,
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: [[p.paymentId, (p.amount / 100).toFixed(2), p.status, p.paidAt]],
+      },
+    });
+  } else {
+    // No pending row found (create-order sheet write failed) — append a full row.
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: sheetId,
+      range: APPEND_RANGE,
+      valueInputOption: "USER_ENTERED",
+      requestBody: { values: [buildSheetRow(data)] },
+    });
+  }
 }
 
 // ─── Public pipeline ─────────────────────────────────────────────────────────
@@ -311,8 +376,8 @@ export async function processAuditionSubmission(
 ): Promise<ProcessResult> {
   const orderId = data.payment?.orderId;
 
-  // Idempotency — never process the same paid order twice.
-  if (orderId && (await isOrderRecorded(orderId))) {
+  // Idempotency — never process the same already-Paid order twice.
+  if (orderId && (await isOrderPaid(orderId))) {
     return { duplicate: true };
   }
 
@@ -328,6 +393,9 @@ export async function processAuditionSubmission(
   const safeName = data.fullName.replace(/[^a-z0-9]/gi, "_").slice(0, 50);
   const resend = new Resend(apiKey);
 
+  // Emails first — the admin email (with PDF) is the source of truth. If it
+  // fails we throw BEFORE marking the row Paid, so the order stays Pending and
+  // a retry can succeed.
   const [adminResult] = await Promise.allSettled([
     resend.emails.send({
       from: "A7 Entertainment <noreply@a7entertainment.in>",
@@ -345,12 +413,6 @@ export async function processAuditionSubmission(
       subject: "Application Received — A7 Entertainment",
       html: buildAutoReplyHtml(data.fullName, data.payment),
     }),
-    appendToGoogleSheet(data).catch((err) =>
-      console.error(
-        `[Sheets] Append FAILED for PAID order ${orderId ?? "n/a"} — reconcile manually:`,
-        err
-      )
-    ),
   ]);
 
   if (adminResult.status === "rejected") {
@@ -358,6 +420,14 @@ export async function processAuditionSubmission(
       `Admin email failed: ${String((adminResult as PromiseRejectedResult).reason)}`
     );
   }
+
+  // Emails sent — now flip the pending row to Paid (non-fatal on failure).
+  await recordPaidToSheet(data).catch((err) =>
+    console.error(
+      `[Sheets] Could not mark order ${orderId ?? "n/a"} as Paid — reconcile manually:`,
+      err
+    )
+  );
 
   if (orderId) processedOrderIds.add(orderId);
   return { duplicate: false };

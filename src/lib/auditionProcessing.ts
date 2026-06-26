@@ -270,12 +270,15 @@ async function appendToGoogleSheet(data: AuditionData): Promise<void> {
   }
   const { sheets, sheetId } = client;
 
-  // Auto-add headers if the sheet is empty
+  // Ensure the header row spans all columns. Self-heals sheets that were
+  // created with the original 25-column schema (before the payment columns
+  // Z:AD existed) and brand-new empty sheets alike.
   const check = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
-    range: `${SHEET_NAME}!A1:A1`,
+    range: `${SHEET_NAME}!A1:AD1`,
   });
-  if (!check.data.values?.length) {
+  const headerRow = check.data.values?.[0] ?? [];
+  if (headerRow.length < SHEET_HEADERS.length) {
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: `${SHEET_NAME}!A1`,

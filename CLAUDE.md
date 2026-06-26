@@ -16,12 +16,14 @@ npm run lint         # Lint check
 **Environment variables required:**
 ```
 RESEND_API_KEY=<your-resend-api-key>
-GOOGLE_SERVICE_ACCOUNT_EMAIL=<service-account-email>
-GOOGLE_PRIVATE_KEY=<service-account-private-key>
+GOOGLE_SERVICE_ACCOUNT_JSON=<full service-account JSON blob>
 GOOGLE_SHEET_ID=<target-google-sheet-id>
+RAZORPAY_KEY_ID=<rzp_test_ or rzp_live_ key id>
+RAZORPAY_KEY_SECRET=<razorpay key secret — server only>
+RAZORPAY_WEBHOOK_SECRET=<razorpay webhook signing secret — server only>
 ```
 
-> Only `RESEND_API_KEY` is required for the contact form. The Google Sheets variables are required only if audition submission to Google Sheets is enabled.
+> Only `RESEND_API_KEY` is required for the contact form. The Google Sheets variables are required only if audition submission to Google Sheets is enabled — the code reads a single `GOOGLE_SERVICE_ACCOUNT_JSON` blob (not separate email/key vars). The `RAZORPAY_*` variables gate model registration behind payment; if `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET` are unset, `/api/razorpay/create-order` and `/api/audition/submit` return 503 (fast-disable path).
 
 ---
 

@@ -32,7 +32,7 @@ const sections: LegalSection[] = [
   {
     heading: "Registration & Audition Fee",
     body: [
-      "Submission of a model registration requires payment of a non-refundable registration fee of ₹499 (INR), except as set out in our Refund Policy. Payment of this fee is a processing charge and does not guarantee selection, casting, representation, or any form of work or income.",
+      "Submission of a model registration requires payment of a non-refundable registration fee of up to ₹499 (INR), except as set out in our Refund Policy. The exact fee payable is displayed on the registration page at the time of payment. Payment of this fee is a processing charge and does not guarantee selection, casting, representation, or any form of work or income.",
       "All payments are processed securely through Razorpay. By proceeding to payment you also agree to Razorpay’s applicable terms.",
     ],
   },

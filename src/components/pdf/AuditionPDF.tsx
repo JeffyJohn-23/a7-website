@@ -307,6 +307,32 @@ export function AuditionPDF({ data }: { data: AuditionData }) {
           </View>
         </View>
 
+        {/* ── Payment (verified) ── */}
+        {data.payment && (
+          <View style={s.section}>
+            <SectionHeader num={8} title="PAYMENT — VERIFIED" />
+            <View style={s.twoCol}>
+              <View style={s.col}>
+                <Row>
+                  <Field label="Amount Paid" value={`INR ${(data.payment.amount / 100).toFixed(2)}`} />
+                  <Field label="Status" value={data.payment.status} />
+                </Row>
+                <Row>
+                  <Field label="Payment ID" value={data.payment.paymentId} />
+                </Row>
+              </View>
+              <View style={s.col}>
+                <Row>
+                  <Field label="Order ID" value={data.payment.orderId} />
+                </Row>
+                <Row>
+                  <Field label="Paid At" value={data.payment.paidAt} />
+                </Row>
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* ── Footer ── */}
         <View style={s.pageFooter} fixed>
           <Text style={s.footerText}>A7 ENTERTAINMENT & PARKER MODELS — ORION MODEL HUNT — CONFIDENTIAL</Text>

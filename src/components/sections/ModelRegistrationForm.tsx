@@ -2,6 +2,59 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { AuditionData } from "@/types/audition";
+import { REGISTRATION_FEE_LABEL } from "@/lib/registration";
+
+// ─── Razorpay checkout typing + loader ──────────────────────────────────────
+
+type RazorpayResponse = {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+};
+
+type RazorpayOptions = {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  prefill: { name: string; email: string; contact: string };
+  theme: { color: string };
+  handler: (response: RazorpayResponse) => void;
+  modal: { ondismiss: () => void };
+};
+
+type RazorpayInstance = {
+  open: () => void;
+  on: (event: string, cb: (resp: { error?: { description?: string } }) => void) => void;
+};
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: RazorpayOptions) => RazorpayInstance;
+  }
+}
+
+const RAZORPAY_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
+
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") return resolve(false);
+    if (window.Razorpay) return resolve(true);
+    const existing = document.querySelector<HTMLScriptElement>(`script[src="${RAZORPAY_SCRIPT}"]`);
+    if (existing) {
+      existing.addEventListener("load", () => resolve(true));
+      existing.addEventListener("error", () => resolve(false));
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = RAZORPAY_SCRIPT;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
 
 // ─── initial state ────────────────────────────────────────────────────────────
 
@@ -176,7 +229,9 @@ export function ModelRegistrationForm() {
   const [form, setForm] = useState<AuditionData>(EMPTY);
   // rawPhoto = compressed source used for drag manipulation; never cropped
   const [rawPhoto, setRawPhoto] = useState<string>("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "creating_order" | "awaiting_payment" | "submitting" | "success" | "error"
+  >("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -439,29 +494,83 @@ export function ModelRegistrationForm() {
     return null;
   };
 
-  // ── Submit ────────────────────────────────────────────────────────────────
+  // ── Submit application after verified payment ──────────────────────────────
+  const submitApplication = async (payment: RazorpayResponse) => {
+    setStatus("submitting");
+    try {
+      const res = await fetch("/api/audition/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, ...payment }),
+      });
+      const data = await res.json() as { success: boolean; error?: string };
+      if (data.success) {
+        setStatus("success");
+      } else {
+        setErrorMsg(data.error ?? "Submission failed. Please contact us — your payment was received.");
+        setStatus("error");
+      }
+    } catch {
+      setErrorMsg("Network error after payment. Please contact us — your payment was received.");
+      setStatus("error");
+    }
+  };
+
+  // ── Validate → create order → open Razorpay checkout → submit ──────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
     const err = validate();
     if (err) { setErrorMsg(err); return; }
 
-    setStatus("loading");
+    setStatus("creating_order");
     try {
-      const res = await fetch("/api/audition/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json() as { success: boolean; error?: string };
-      if (data.success) {
-        setStatus("success");
-      } else {
-        setErrorMsg(data.error ?? "Submission failed. Please try again.");
+      const scriptOk = await loadRazorpayScript();
+      if (!scriptOk || !window.Razorpay) {
+        setErrorMsg("Could not load the payment gateway. Check your connection and try again.");
         setStatus("error");
+        return;
       }
+
+      const orderRes = await fetch("/api/razorpay/create-order", { method: "POST" });
+      const order = await orderRes.json() as {
+        success: boolean; orderId?: string; amount?: number;
+        currency?: string; keyId?: string; error?: string;
+      };
+      if (!order.success || !order.orderId || !order.keyId) {
+        setErrorMsg(order.error ?? "Could not start payment. Please try again.");
+        setStatus("error");
+        return;
+      }
+
+      const rzp = new window.Razorpay({
+        key: order.keyId,
+        amount: order.amount ?? 0,
+        currency: order.currency ?? "INR",
+        name: "A7 Entertainment",
+        description: "Orion Model Hunt — Registration Fee",
+        order_id: order.orderId,
+        prefill: { name: form.fullName, email: form.email, contact: form.phone },
+        theme: { color: "#FF0000" },
+        handler: (response) => { void submitApplication(response); },
+        modal: {
+          ondismiss: () => {
+            // Cancellation — keep form data intact, nothing submitted.
+            setStatus("idle");
+            setErrorMsg("Payment cancelled. Your details are saved — you can try again.");
+          },
+        },
+      });
+
+      rzp.on("payment.failed", (resp) => {
+        setStatus("error");
+        setErrorMsg(resp.error?.description ?? "Payment failed. Please try again.");
+      });
+
+      setStatus("awaiting_payment");
+      rzp.open();
     } catch {
-      setErrorMsg("Network error. Please try again.");
+      setErrorMsg("Something went wrong starting payment. Please try again.");
       setStatus("error");
     }
   };
@@ -738,15 +847,36 @@ export function ModelRegistrationForm() {
             </div>
 
             <div style={{ marginTop: "var(--space-xl)" }}>
+              {/* Fee + disclaimer */}
+              <div
+                className="border border-[#333]"
+                style={{ padding: "1rem 1.25rem", marginBottom: "var(--space-lg)" }}
+              >
+                <div className="flex items-baseline justify-between gap-4 flex-wrap">
+                  <span className="text-[10px] text-[#555] tracking-widest uppercase">
+                    Registration Fee
+                  </span>
+                  <span className="text-white text-xl font-bold">{REGISTRATION_FEE_LABEL}</span>
+                </div>
+                <p className="text-[11px] text-[#666] leading-relaxed" style={{ marginTop: "0.6rem" }}>
+                  A one-time, non-refundable registration fee is required to submit your
+                  application. Payment does not guarantee selection. By proceeding you agree to our{" "}
+                  <a href="/terms-and-conditions" target="_blank" className="text-[#FF0000] hover:opacity-70 transition-opacity" data-cursor-hover>Terms</a>{" "}
+                  and{" "}
+                  <a href="/refund-policy" target="_blank" className="text-[#FF0000] hover:opacity-70 transition-opacity" data-cursor-hover>Refund Policy</a>.
+                  Payments are processed securely via Razorpay.
+                </p>
+              </div>
+
               {errorMsg && (
                 <p className="text-[#FF0000] text-sm" style={{ marginBottom: "var(--space-md)" }}>{errorMsg}</p>
               )}
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <button
                   type="submit"
-                  disabled={status === "loading"}
+                  disabled={status === "creating_order" || status === "awaiting_payment" || status === "submitting"}
                   className="group relative overflow-hidden border border-white hover:border-[#FF0000] transition-[border-color] duration-300 text-white text-sm tracking-[0.2em] uppercase py-3 font-bold disabled:opacity-50 w-full sm:w-auto"
-                  style={{ paddingLeft: "0.5rem", paddingRight: "0.5rem" }}
+                  style={{ paddingLeft: "0.75rem", paddingRight: "0.75rem" }}
                   data-cursor-hover
                 >
                   {/* Red fill sweeps top → bottom on hover */}
@@ -755,7 +885,13 @@ export function ModelRegistrationForm() {
                     aria-hidden="true"
                   />
                   <span className="relative z-10">
-                    {status === "loading" ? "Submitting…" : "Submit Application"}
+                    {status === "creating_order"
+                      ? "Starting…"
+                      : status === "awaiting_payment"
+                      ? "Awaiting Payment…"
+                      : status === "submitting"
+                      ? "Submitting…"
+                      : `Proceed to Payment — ${REGISTRATION_FEE_LABEL}`}
                   </span>
                 </button>
                 <p className="text-xs text-[#666]">Fields marked <span className="text-[#FF0000]">*</span> are required.</p>

@@ -38,4 +38,17 @@ export type AuditionData = {
   agreedToTerms: boolean;
   signatureName: string;
   signatureDate: string;
+
+  // Payment — populated server-side after Razorpay signature verification.
+  // Never trusted from the client for the amount/status.
+  payment?: PaymentInfo;
+};
+
+export type PaymentInfo = {
+  orderId: string; // razorpay_order_id
+  paymentId: string; // razorpay_payment_id
+  amount: number; // paise, server-confirmed
+  currency: string; // e.g. "INR"
+  status: string; // e.g. "paid"
+  paidAt: string; // ISO timestamp
 };

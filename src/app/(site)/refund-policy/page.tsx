@@ -20,7 +20,7 @@ const sections: LegalSection[] = [
   {
     heading: "Registration Fee",
     body: [
-      "Submission of a model registration requires a one-time, non-refundable registration fee of ₹499 (INR). This fee covers the administrative processing and review of your application.",
+      "Submission of a model registration requires a one-time, non-refundable registration fee of up to ₹499 (INR). The exact fee payable is shown on the registration page at the time of payment. This fee covers the administrative processing and review of your application.",
     ],
   },
   {
@@ -54,7 +54,7 @@ export default function RefundPolicyPage() {
     <LegalLayout
       title="Refund Policy"
       lastUpdated={LAST_UPDATED}
-      intro="This Refund Policy explains the terms applicable to the ₹499 model registration fee, including the limited circumstances in which a refund may be issued. It should be read together with our Terms & Conditions."
+      intro="This Refund Policy explains the terms applicable to the model registration fee (up to ₹499), including the limited circumstances in which a refund may be issued. It should be read together with our Terms & Conditions."
       sections={sections}
     />
   );

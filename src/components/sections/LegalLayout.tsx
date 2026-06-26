@@ -26,19 +26,6 @@ export function LegalLayout({ title, lastUpdated, intro, sections }: LegalLayout
         style={{ paddingTop: "6.5rem", paddingBottom: "2.5rem" }}
       >
         <div className="max-w-4xl mx-auto">
-          {/* DRAFT banner — remove once legal sign-off is complete */}
-          <div
-            className="inline-block mb-5"
-            style={{
-              border: "1px solid #FF0000",
-              padding: "6px 12px",
-            }}
-          >
-            <span className="text-[#FF0000] text-[10px] font-bold tracking-[0.3em] uppercase">
-              Draft — Requires Legal Review
-            </span>
-          </div>
-
           <h1 className="font-display font-black text-white text-4xl md:text-5xl leading-tight mb-3">
             {title}
           </h1>

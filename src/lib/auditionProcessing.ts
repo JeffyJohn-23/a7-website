@@ -32,6 +32,9 @@ const PAYMENT_RANGE = `${SHEET_NAME}!Z2:AD`;
 // Payment status values written to the sheet's "Payment Status" column.
 export const STATUS_PENDING = "Pending";
 export const STATUS_PAID = "Paid";
+// Webhook saw a captured payment but the in-page form never completed.
+// Overridden to STATUS_PAID if the real submission lands later.
+export const STATUS_PAID_NO_SUBMISSION = "Paid (No Submission)";
 
 // In-memory dedupe guard. Survives within a warm server instance; the Sheet
 // lookup below covers cross-instance / cold-start cases when Sheets is enabled.
@@ -166,35 +169,6 @@ function buildAutoReplyHtml(name: string, payment?: PaymentInfo): string {
 </table>
 </body>
 </html>`;
-}
-
-function buildReconciliationAlertHtml(payment: PaymentInfo): string {
-  return `<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/></head>
-<body style="margin:0;padding:0;background:#0a0a0a;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:48px 16px;"><tr><td align="center">
-<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#111111;border:1px solid rgba(255,255,255,0.08);">
-  <tr><td style="padding:32px 48px;border-bottom:2px solid #FF0000;">
-    <span style="font-size:22px;font-weight:900;color:#FF0000;letter-spacing:0.05em;">A7</span>
-    <span style="float:right;font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:0.3em;">PAYMENT RECONCILIATION</span>
-  </td></tr>
-  <tr><td style="padding:32px 48px;">
-    <h1 style="margin:0 0 12px;font-size:20px;font-weight:700;color:#ffffff;">Payment captured without a completed registration</h1>
-    <p style="margin:0 0 20px;font-size:14px;color:rgba(255,255,255,0.75);line-height:1.8;">
-      Razorpay reported a captured payment for which no completed application row was found in the
-      registration sheet. The applicant likely paid but closed the browser before the form finished
-      submitting. Please reconcile from the Razorpay dashboard and follow up with the applicant.
-    </p>
-    <table cellpadding="0" cellspacing="0">
-      ${field("Payment ID", payment.paymentId)}
-      ${field("Order ID", payment.orderId)}
-      ${field("Amount", formatAmount(payment))}
-      ${field("Status", payment.status)}
-      ${field("Captured At", payment.paidAt)}
-    </table>
-  </td></tr>
-</table>
-</td></tr></table></body></html>`;
 }
 
 // ─── Google Sheets ───────────────────────────────────────────────────────────
@@ -433,16 +407,55 @@ export async function processAuditionSubmission(
   return { duplicate: false };
 }
 
-/** Webhook safety net: alert admin that a payment was captured with no matching row. */
-export async function sendPaymentReconciliationAlert(
-  payment: PaymentInfo,
-  apiKey: string
-): Promise<void> {
-  const resend = new Resend(apiKey);
-  await resend.emails.send({
-    from: "A7 Entertainment <noreply@a7entertainment.in>",
-    to: ["enquiry@a7entertainment.in"],
-    subject: `⚠ Payment captured without registration — ${payment.paymentId}`,
-    html: buildReconciliationAlertHtml(payment),
+/**
+ * Webhook safety net (no email). Records a captured payment whose in-page form
+ * never completed by setting the row's status to "Paid (No Submission)". It
+ * never clobbers a row that already reached "Paid" (a real submission), so a
+ * normal payment can never be mislabeled or trigger a notification. Genuine
+ * abandonment is then visible by filtering the sheet for this status.
+ */
+export async function markOrderPaidWithoutSubmission(payment: PaymentInfo): Promise<void> {
+  const client = getSheetsClient();
+  if (!client) {
+    console.error(
+      "[Sheets] Not configured — cannot reconcile captured payment",
+      payment.orderId
+    );
+    return;
+  }
+  const { sheets, sheetId } = client;
+  await ensureHeaders(sheets, sheetId);
+
+  const amount = (payment.amount / 100).toFixed(2);
+  const existing = await findOrderRow(sheets, sheetId, payment.orderId);
+
+  if (existing) {
+    if (existing.status === STATUS_PAID) return; // real submission already landed
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: sheetId,
+      range: `${SHEET_NAME}!AA${existing.row}:AD${existing.row}`,
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: [[payment.paymentId, amount, STATUS_PAID_NO_SUBMISSION, payment.paidAt]],
+      },
+    });
+    return;
+  }
+
+  // No pending row exists (create-order sheet write had failed) — append a
+  // minimal record so the captured payment is still visible for follow-up.
+  const row = new Array(SHEET_HEADERS.length).fill("");
+  row[0] = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+  row[1] = "(Paid via webhook — no form data)";
+  row[25] = payment.orderId; // Z
+  row[26] = payment.paymentId; // AA
+  row[27] = amount; // AB
+  row[28] = STATUS_PAID_NO_SUBMISSION; // AC
+  row[29] = payment.paidAt; // AD
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: sheetId,
+    range: APPEND_RANGE,
+    valueInputOption: "USER_ENTERED",
+    requestBody: { values: [row] },
   });
 }

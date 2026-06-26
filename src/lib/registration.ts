@@ -4,7 +4,7 @@
 // To change the fee, edit ONLY these values (and the figure quoted in the legal
 // pages: /terms-and-conditions and /refund-policy).
 
-export const REGISTRATION_FEE_PAISE = 100; // TEMP ₹1.00 for live smoke test — revert to 20000 (₹200) after
+export const REGISTRATION_FEE_PAISE = 24900; // ₹249.00
 export const REGISTRATION_FEE_CURRENCY = "INR";
 
 /** Human-readable label, e.g. "₹499". */

@@ -2,23 +2,23 @@ import { NextResponse, after } from "next/server";
 import { verifyWebhookSignature } from "@/lib/razorpay";
 import {
   isOrderPaid,
-  sendPaymentReconciliationAlert,
+  markOrderPaidWithoutSubmission,
 } from "@/lib/auditionProcessing";
 import type { PaymentInfo } from "@/types/audition";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-// How long to wait after a captured payment before deciding the registration
-// was abandoned. The in-page submit (PDF render + emails + sheet write) takes a
-// few seconds; this grace period prevents a false "payment captured without
-// registration" alert from racing ahead of a perfectly normal submission.
+// Grace period so a normal in-page submission (PDF + emails + sheet write) has
+// time to flip its row to "Paid" before the webhook steps in. This only keeps
+// the sheet tidy — correctness no longer depends on it: the reconciler never
+// emails and never overwrites a row that already reached "Paid".
 const RECONCILE_GRACE_MS = 30_000;
 
-// Reconciliation safety net. Because we do not persist form data server-side,
-// the webhook cannot regenerate a submission; instead, when a payment is
-// captured but no matching registration row appears (applicant paid then closed
-// the browser before the form finished), it alerts the admin to follow up.
+// Reconciliation safety net (no email). When a payment is captured but the
+// in-page form never completed, the row is marked "Paid (No Submission)" so it
+// is visible for follow-up. A successful payment can therefore never trigger a
+// notification — eliminating false "payment captured without registration" mail.
 export async function POST(request: Request) {
   const rawBody = await request.text();
   const signature = request.headers.get("x-razorpay-signature");
@@ -64,13 +64,12 @@ export async function POST(request: Request) {
       };
 
       // Respond to Razorpay immediately; reconcile after a grace period so a
-      // normal in-page submission has time to record its sheet row.
+      // normal in-page submission has time to mark its row "Paid".
       after(async () => {
         try {
           await new Promise((resolve) => setTimeout(resolve, RECONCILE_GRACE_MS));
           if (await isOrderPaid(orderId)) return; // normal path — submission landed
-          const apiKey = process.env.RESEND_API_KEY;
-          if (apiKey) await sendPaymentReconciliationAlert(payment, apiKey);
+          await markOrderPaidWithoutSubmission(payment); // no email; sheet status only
         } catch (err) {
           console.error("[/api/razorpay/webhook] reconcile error:", err);
         }

@@ -235,7 +235,7 @@ async function ensureHeaders(sheets: SheetsApi, sheetId: string): Promise<void> 
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: `${SHEET_NAME}!A1`,
-      valueInputOption: "USER_ENTERED",
+      valueInputOption: "RAW",
       requestBody: { values: [SHEET_HEADERS] },
     });
   }
@@ -289,7 +289,7 @@ export async function appendPendingRow(data: AuditionData): Promise<void> {
   await sheets.spreadsheets.values.append({
     spreadsheetId: sheetId,
     range: APPEND_RANGE,
-    valueInputOption: "USER_ENTERED",
+    valueInputOption: "RAW",
     requestBody: { values: [buildSheetRow(data)] },
   });
 }
@@ -318,7 +318,7 @@ async function recordPaidToSheet(data: AuditionData): Promise<void> {
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: `${SHEET_NAME}!AA${existing.row}:AD${existing.row}`,
-      valueInputOption: "USER_ENTERED",
+      valueInputOption: "RAW",
       requestBody: {
         values: [[p.paymentId, (p.amount / 100).toFixed(2), p.status, p.paidAt]],
       },
@@ -328,7 +328,7 @@ async function recordPaidToSheet(data: AuditionData): Promise<void> {
     await sheets.spreadsheets.values.append({
       spreadsheetId: sheetId,
       range: APPEND_RANGE,
-      valueInputOption: "USER_ENTERED",
+      valueInputOption: "RAW",
       requestBody: { values: [buildSheetRow(data)] },
     });
   }
@@ -434,7 +434,7 @@ export async function markOrderPaidWithoutSubmission(payment: PaymentInfo): Prom
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: `${SHEET_NAME}!AA${existing.row}:AD${existing.row}`,
-      valueInputOption: "USER_ENTERED",
+      valueInputOption: "RAW",
       requestBody: {
         values: [[payment.paymentId, amount, STATUS_PAID_NO_SUBMISSION, payment.paidAt]],
       },
@@ -455,7 +455,7 @@ export async function markOrderPaidWithoutSubmission(payment: PaymentInfo): Prom
   await sheets.spreadsheets.values.append({
     spreadsheetId: sheetId,
     range: APPEND_RANGE,
-    valueInputOption: "USER_ENTERED",
+    valueInputOption: "RAW",
     requestBody: { values: [row] },
   });
 }

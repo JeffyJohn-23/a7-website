@@ -4,6 +4,7 @@ import { verifyPaymentSignature, isRazorpayConfigured } from "@/lib/razorpay";
 import {
   processAuditionSubmission,
   isOrderPaid,
+  STATUS_PAID,
 } from "@/lib/auditionProcessing";
 import { REGISTRATION_FEE_PAISE, REGISTRATION_FEE_CURRENCY } from "@/lib/registration";
 
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
       paymentId,
       amount: REGISTRATION_FEE_PAISE,
       currency: REGISTRATION_FEE_CURRENCY,
-      status: "paid",
+      status: STATUS_PAID,
       paidAt: new Date().toISOString(),
     };
     const data: AuditionData = { ...body, payment };

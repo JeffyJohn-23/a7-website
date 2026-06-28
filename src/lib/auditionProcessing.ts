@@ -260,13 +260,22 @@ async function findOrderRow(
   return null;
 }
 
+/**
+ * True if a status cell means a *completed* paid submission. Matches "Paid" or
+ * "paid" (any case) exactly — but NOT "Paid (No Submission)", which is the
+ * webhook placeholder that a real submission is allowed to upgrade.
+ */
+function isPaidStatus(status: string | undefined): boolean {
+  return (status ?? "").trim().toLowerCase() === STATUS_PAID.toLowerCase();
+}
+
 /** True once an order has reached "Paid" status (deduplication guard). */
 export async function isOrderPaid(orderId: string): Promise<boolean> {
   if (processedOrderIds.has(orderId)) return true;
   const client = getSheetsClient();
   if (!client) return false; // can't verify without Sheets — treat as not paid
   const found = await findOrderRow(client.sheets, client.sheetId, orderId);
-  const paid = found?.status === STATUS_PAID;
+  const paid = isPaidStatus(found?.status);
   if (paid) processedOrderIds.add(orderId);
   return paid;
 }
@@ -320,7 +329,7 @@ async function recordPaidToSheet(data: AuditionData): Promise<void> {
       range: `${SHEET_NAME}!AA${existing.row}:AD${existing.row}`,
       valueInputOption: "RAW",
       requestBody: {
-        values: [[p.paymentId, (p.amount / 100).toFixed(2), p.status, p.paidAt]],
+        values: [[p.paymentId, (p.amount / 100).toFixed(2), STATUS_PAID, p.paidAt]],
       },
     });
   } else {
@@ -430,7 +439,7 @@ export async function markOrderPaidWithoutSubmission(payment: PaymentInfo): Prom
   const existing = await findOrderRow(sheets, sheetId, payment.orderId);
 
   if (existing) {
-    if (existing.status === STATUS_PAID) return; // real submission already landed
+    if (isPaidStatus(existing.status)) return; // real submission already landed
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: `${SHEET_NAME}!AA${existing.row}:AD${existing.row}`,

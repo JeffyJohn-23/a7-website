@@ -225,7 +225,14 @@ function SkillInput({ value, onChange }: { value: string; onChange: (v: string) 
 
 // ─── main component ───────────────────────────────────────────────────────────
 
-export function ModelRegistrationForm() {
+export function ModelRegistrationForm({
+  mode = "paid",
+  endpoint = "/api/audition/submit-sju",
+}: {
+  mode?: "paid" | "free";
+  endpoint?: string;
+} = {}) {
+  const isFree = mode === "free";
   const [form, setForm] = useState<AuditionData>(EMPTY);
   // rawPhoto = compressed source used for drag manipulation; never cropped
   const [rawPhoto, setRawPhoto] = useState<string>("");
@@ -233,6 +240,8 @@ export function ModelRegistrationForm() {
     "idle" | "creating_order" | "awaiting_payment" | "submitting" | "success" | "error"
   >("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  // Honeypot — hidden field; bots fill it, real users never do.
+  const [honeypot, setHoneypot] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   // ── Photo drag / zoom state ────────────────────────────────────────────────
@@ -516,12 +525,40 @@ export function ModelRegistrationForm() {
     }
   };
 
+  // ── Free submit (no payment) — used by the SJU flow ────────────────────────
+  const submitFree = async () => {
+    setStatus("submitting");
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, website: honeypot }),
+      });
+      const data = await res.json() as { success: boolean; error?: string };
+      if (data.success) {
+        setStatus("success");
+      } else {
+        setErrorMsg(data.error ?? "Submission failed. Please try again.");
+        setStatus("error");
+      }
+    } catch {
+      setErrorMsg("Network error. Please try again.");
+      setStatus("error");
+    }
+  };
+
   // ── Validate → create order → open Razorpay checkout → submit ──────────────
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
     const err = validate();
     if (err) { setErrorMsg(err); return; }
+
+    // Free flow (SJU): skip payment entirely.
+    if (isFree) {
+      await submitFree();
+      return;
+    }
 
     setStatus("creating_order");
     try {
@@ -852,27 +889,60 @@ export function ModelRegistrationForm() {
               </div>
             </div>
 
+            {/* Honeypot — visually hidden; only bots fill this */}
+            <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", top: 0, width: 1, height: 1, overflow: "hidden" }}>
+              <label>
+                Website
+                <input
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </label>
+            </div>
+
             <div style={{ marginTop: "var(--space-xl)" }}>
-              {/* Fee + disclaimer */}
-              <div
-                className="border border-[#333]"
-                style={{ padding: "1rem 1.25rem", marginBottom: "var(--space-lg)" }}
-              >
-                <div className="flex items-baseline justify-between gap-4 flex-wrap">
-                  <span className="text-[10px] text-[#555] tracking-widest uppercase">
-                    Registration Fee
-                  </span>
-                  <span className="text-white text-xl font-bold">{REGISTRATION_FEE_LABEL}</span>
+              {/* Fee + disclaimer (paid flow only) */}
+              {isFree ? (
+                <div
+                  className="border border-[#333]"
+                  style={{ padding: "1rem 1.25rem", marginBottom: "var(--space-lg)" }}
+                >
+                  <div className="flex items-baseline justify-between gap-4 flex-wrap">
+                    <span className="text-[10px] text-[#555] tracking-widest uppercase">
+                      Registration Fee
+                    </span>
+                    <span className="text-white text-xl font-bold">FREE</span>
+                  </div>
+                  <p className="text-[11px] text-[#666] leading-relaxed" style={{ marginTop: "0.6rem" }}>
+                    Registration is free for St. Joseph University students. Submission does not
+                    guarantee selection. By submitting you agree to our{" "}
+                    <a href="/terms-and-conditions" target="_blank" className="text-[#FF0000] hover:opacity-70 transition-opacity" data-cursor-hover>Terms</a>.
+                  </p>
                 </div>
-                <p className="text-[11px] text-[#666] leading-relaxed" style={{ marginTop: "0.6rem" }}>
-                  A one-time, non-refundable registration fee is required to submit your
-                  application. Payment does not guarantee selection. By proceeding you agree to our{" "}
-                  <a href="/terms-and-conditions" target="_blank" className="text-[#FF0000] hover:opacity-70 transition-opacity" data-cursor-hover>Terms</a>{" "}
-                  and{" "}
-                  <a href="/refund-policy" target="_blank" className="text-[#FF0000] hover:opacity-70 transition-opacity" data-cursor-hover>Refund Policy</a>.
-                  Payments are processed securely via Razorpay.
-                </p>
-              </div>
+              ) : (
+                <div
+                  className="border border-[#333]"
+                  style={{ padding: "1rem 1.25rem", marginBottom: "var(--space-lg)" }}
+                >
+                  <div className="flex items-baseline justify-between gap-4 flex-wrap">
+                    <span className="text-[10px] text-[#555] tracking-widest uppercase">
+                      Registration Fee
+                    </span>
+                    <span className="text-white text-xl font-bold">{REGISTRATION_FEE_LABEL}</span>
+                  </div>
+                  <p className="text-[11px] text-[#666] leading-relaxed" style={{ marginTop: "0.6rem" }}>
+                    A one-time, non-refundable registration fee is required to submit your
+                    application. Payment does not guarantee selection. By proceeding you agree to our{" "}
+                    <a href="/terms-and-conditions" target="_blank" className="text-[#FF0000] hover:opacity-70 transition-opacity" data-cursor-hover>Terms</a>{" "}
+                    and{" "}
+                    <a href="/refund-policy" target="_blank" className="text-[#FF0000] hover:opacity-70 transition-opacity" data-cursor-hover>Refund Policy</a>.
+                    Payments are processed securely via Razorpay.
+                  </p>
+                </div>
+              )}
 
               {errorMsg && (
                 <p className="text-[#FF0000] text-sm" style={{ marginBottom: "var(--space-md)" }}>{errorMsg}</p>
@@ -897,6 +967,8 @@ export function ModelRegistrationForm() {
                       ? "Awaiting Payment…"
                       : status === "submitting"
                       ? "Submitting…"
+                      : isFree
+                      ? "Submit Application"
                       : `Proceed to Payment — ${REGISTRATION_FEE_LABEL}`}
                   </span>
                 </button>

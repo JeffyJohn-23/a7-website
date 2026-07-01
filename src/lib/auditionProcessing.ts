@@ -23,7 +23,11 @@ export const SHEET_HEADERS = [
   "Order ID", "Payment ID", "Amount (INR)", "Payment Status", "Paid At",
 ];
 
+// Free flow (e.g. SJU): the 25 form columns only, no payment columns.
+export const SHEET_HEADERS_FREE = SHEET_HEADERS.slice(0, 25);
+
 const SHEET_NAME = "Sheet1";
+const FREE_APPEND_RANGE = `${SHEET_NAME}!A:Y`; // A..Y = 25 columns
 // A..AD = 30 columns
 const APPEND_RANGE = `${SHEET_NAME}!A:AD`;
 // Payment columns Z:AD — [Order ID, Payment ID, Amount, Status, Paid At]
@@ -76,7 +80,7 @@ function paymentBlockHtml(payment: PaymentInfo): string {
   </td></tr>`;
 }
 
-function buildAdminHtml(data: AuditionData, ts: string): string {
+function buildAdminHtml(data: AuditionData, ts: string, badge = "PAID APPLICATION"): string {
   const g = data.gender.join(", ");
   const payment = data.payment;
   return `<!DOCTYPE html>
@@ -89,7 +93,7 @@ function buildAdminHtml(data: AuditionData, ts: string): string {
   <tr><td style="padding:32px 48px;border-bottom:2px solid #FF0000;">
     <span style="font-size:22px;font-weight:900;color:#FF0000;letter-spacing:0.05em;">A7</span>
     <span style="font-size:13px;color:rgba(255,255,255,0.45);letter-spacing:0.25em;margin-left:10px;">ENTERTAINMENT</span>
-    <span style="float:right;font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:0.3em;">PAID APPLICATION</span>
+    <span style="float:right;font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:0.3em;">${escapeHtml(badge)}</span>
   </td></tr>
   <tr><td style="padding:32px 48px 8px;">
     <p style="margin:0 0 4px;font-size:10px;letter-spacing:0.4em;color:#FF0000;text-transform:uppercase;">Model Registration</p>
@@ -210,9 +214,11 @@ function buildSheetRow(data: AuditionData): string[] {
   ];
 }
 
-function getSheetsClient() {
+// Pass an explicit sheetId to target a specific spreadsheet (e.g. the SJU
+// sheet). With no argument it falls back to the default paid-flow sheet.
+function getSheetsClient(sheetIdOverride?: string) {
   const creds = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  const sheetId = process.env.GOOGLE_SHEET_ID;
+  const sheetId = sheetIdOverride ?? process.env.GOOGLE_SHEET_ID;
   if (!creds || !sheetId) return null;
   const auth = new google.auth.GoogleAuth({
     credentials: JSON.parse(creds) as object,
@@ -467,4 +473,98 @@ export async function markOrderPaidWithoutSubmission(payment: PaymentInfo): Prom
     valueInputOption: "RAW",
     requestBody: { values: [row] },
   });
+}
+
+// ─── Free flow (no payment — e.g. SJU students) ──────────────────────────────
+
+/** Ensure the free sheet's 25-column header row exists. */
+async function ensureFreeHeaders(sheets: SheetsApi, sheetId: string): Promise<void> {
+  const check = await sheets.spreadsheets.values.get({
+    spreadsheetId: sheetId,
+    range: `${SHEET_NAME}!A1:Y1`,
+  });
+  const headerRow = check.data.values?.[0] ?? [];
+  if (headerRow.length < SHEET_HEADERS_FREE.length) {
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: sheetId,
+      range: `${SHEET_NAME}!A1`,
+      valueInputOption: "RAW",
+      requestBody: { values: [SHEET_HEADERS_FREE] },
+    });
+  }
+}
+
+/** Append a free registration row (25 form columns) to the given sheet. */
+async function appendFreeRow(sheetId: string | undefined, data: AuditionData): Promise<void> {
+  // Never fall back to the paid sheet — a missing SJU sheet id must not write
+  // free registrations into the paid spreadsheet.
+  if (!sheetId) {
+    console.error("[Sheets] GOOGLE_SHEET_ID_SJU not configured — free registration NOT recorded.");
+    return;
+  }
+  const client = getSheetsClient(sheetId);
+  if (!client) {
+    console.error("[Sheets] Service account not configured — free registration NOT recorded.");
+    return;
+  }
+  const { sheets } = client;
+  await ensureFreeHeaders(sheets, sheetId);
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: sheetId,
+    range: FREE_APPEND_RANGE,
+    valueInputOption: "RAW",
+    requestBody: { values: [buildSheetRow(data).slice(0, 25)] },
+  });
+}
+
+/**
+ * Free registration pipeline (no payment): render the PDF, email applicant +
+ * admin, and append the form row to the given sheet. The admin email is the
+ * source of truth (throws if it fails); the sheet write is non-fatal.
+ */
+export async function processFreeSubmission(
+  data: AuditionData,
+  apiKey: string,
+  sheetId: string | undefined
+): Promise<void> {
+  const pdfElement = React.createElement(AuditionPDF, { data });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pdfBuffer = await renderToBuffer(pdfElement as any);
+
+  const timestamp = new Date().toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    dateStyle: "full",
+    timeStyle: "short",
+  });
+  const safeName = data.fullName.replace(/[^a-z0-9]/gi, "_").slice(0, 50);
+  const resend = new Resend(apiKey);
+
+  const [adminResult] = await Promise.allSettled([
+    resend.emails.send({
+      from: "A7 Entertainment <noreply@a7entertainment.in>",
+      to: ["enquiry@a7entertainment.in"],
+      reply_to: data.email,
+      subject: `Orion Model Hunt — SJU Registration — ${data.fullName}`,
+      html: buildAdminHtml(data, timestamp, "SJU · FREE"),
+      attachments: [
+        { filename: `Registration_${safeName}.pdf`, content: Buffer.from(pdfBuffer) },
+      ],
+    }),
+    resend.emails.send({
+      from: "A7 Entertainment <noreply@a7entertainment.in>",
+      to: [data.email],
+      subject: "Application Received — A7 Entertainment",
+      html: buildAutoReplyHtml(data.fullName, data.payment),
+    }),
+  ]);
+
+  if (adminResult.status === "rejected") {
+    throw new Error(
+      `Admin email failed: ${String((adminResult as PromiseRejectedResult).reason)}`
+    );
+  }
+
+  await appendFreeRow(sheetId, data).catch((err) =>
+    console.error("[Sheets] Free append FAILED — reconcile manually:", err)
+  );
 }

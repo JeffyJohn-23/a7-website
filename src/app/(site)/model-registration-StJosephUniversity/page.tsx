@@ -2,16 +2,16 @@ import type { Metadata } from "next";
 import { ModelRegistrationForm } from "@/components/sections/ModelRegistrationForm";
 
 export const metadata: Metadata = {
-  title: "Model Registration — St. Joseph University",
+  title: "Model Registration By A7Entertainment & Parker Models — St. Joseph University",
   description:
-    "Free model registration for St. Joseph University students. Complete the form to submit your profile for the Orion Model Hunt audition.",
+    "Complete the form to submit your profile for the Orion Model Hunt audition.",
   alternates: { canonical: "https://www.a7entertainment.in/model-registration-StJosephUniversity" },
   robots: { index: false, follow: false },
   openGraph: {
     url: "https://www.a7entertainment.in/model-registration-StJosephUniversity",
     title: "Model Registration (SJU) | A7 Entertainment",
     description:
-      "Free model registration for St. Joseph University students — Orion Model Hunt.",
+      "St. Joseph University students — Orion Model Hunt.",
   },
 };
 

@@ -25,14 +25,14 @@ export default function ModelRegistrationSJUPage() {
       >
         <div className="max-w-4xl mx-auto">
           <h1 className="font-display font-black text-[#FF0000] text-4xl md:text-5xl leading-tight mb-3">
-            REGISTRATION
+            REGISTRATION — St. Joseph University.
           </h1>
           <h1 className="font-display font-black text-white text-3xl md:text-3xl leading-tight mb-3">
-            Orion Model Hunt — St. Joseph University.
+            Orion Model Hunt By A7Entertainment & Parker Models.
           </h1>
 
           <p className="text-[#555] text-sm tracking-widest uppercase">
-            Free registration for SJU students. Complete all sections and submit below.
+            Complete all sections and submit your application below.
           </p>
         </div>
       </div>

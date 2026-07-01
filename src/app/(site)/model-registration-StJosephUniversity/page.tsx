@@ -5,10 +5,10 @@ export const metadata: Metadata = {
   title: "Model Registration — St. Joseph University",
   description:
     "Free model registration for St. Joseph University students. Complete the form to submit your profile for the Orion Model Hunt audition.",
-  alternates: { canonical: "https://www.a7entertainment.in/model-registration-sju" },
+  alternates: { canonical: "https://www.a7entertainment.in/model-registration-StJosephUniversity" },
   robots: { index: false, follow: false },
   openGraph: {
-    url: "https://www.a7entertainment.in/model-registration-sju",
+    url: "https://www.a7entertainment.in/model-registration-StJosephUniversity",
     title: "Model Registration (SJU) | A7 Entertainment",
     description:
       "Free model registration for St. Joseph University students — Orion Model Hunt.",

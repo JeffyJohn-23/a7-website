@@ -70,6 +70,7 @@ const EMPTY: AuditionData = {
   instagram: "",
   agreedToTerms: false, signatureName: "",
   signatureDate: new Date().toISOString().split("T")[0],
+  universityRollNumber: "",
 };
 
 // ─── sub-components ───────────────────────────────────────────────────────────
@@ -228,9 +229,15 @@ function SkillInput({ value, onChange }: { value: string; onChange: (v: string) 
 export function ModelRegistrationForm({
   mode = "paid",
   endpoint = "/api/audition/submit-sju",
+  showRollNumber = false,
+  universityName = "St. Joseph University",
 }: {
   mode?: "paid" | "free";
   endpoint?: string;
+  /** Show the mandatory University Roll Number field (e.g. Jain University). */
+  showRollNumber?: boolean;
+  /** Name shown in the free-flow fee/disclaimer copy. */
+  universityName?: string;
 } = {}) {
   const isFree = mode === "free";
   const [form, setForm] = useState<AuditionData>(EMPTY);
@@ -479,6 +486,7 @@ export function ModelRegistrationForm({
   const validate = (): string | null => {
     if (!form.fullName.trim()) return "Full name is required.";
     if (!form.phone.trim()) return "Phone number is required.";
+    if (showRollNumber && !form.universityRollNumber?.trim()) return "University Roll Number is required.";
     if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
       return "A valid email address is required.";
     if (!form.dob) return "Date of birth is required.";
@@ -661,6 +669,14 @@ export function ModelRegistrationForm({
               <div className="field-stack">
                 <TextInput label="Full Name" value={form.fullName} onChange={set("fullName")} required />
                 <TextInput label="Mobile Number" value={form.phone} onChange={set("phone")} type="tel" required />
+                {showRollNumber && (
+                  <TextInput
+                    label="University Roll Number"
+                    value={form.universityRollNumber ?? ""}
+                    onChange={set("universityRollNumber")}
+                    required
+                  />
+                )}
                 <TextInput label="E-Mail" value={form.email} onChange={set("email")} type="email" required />
                 <TextInput label="Date of Birth" value={form.dob} onChange={set("dob")} type="date" required />
                 <TextInput label="Age" value={form.age} onChange={set("age")} type="number" required />
@@ -917,7 +933,7 @@ export function ModelRegistrationForm({
                     <span className="text-white text-xl font-bold">FREE</span>
                   </div>
                   <p className="text-[11px] text-[#666] leading-relaxed" style={{ marginTop: "0.6rem" }}>
-                    Registration is free for St. Joseph University students. Submission does not
+                    Registration is free for {universityName} students. Submission does not
                     guarantee selection. By submitting you agree to our{" "}
                     <a href="/terms-and-conditions" target="_blank" className="text-[#FF0000] hover:opacity-70 transition-opacity" data-cursor-hover>Terms</a>.
                   </p>

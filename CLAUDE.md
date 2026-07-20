@@ -18,7 +18,8 @@ npm run lint         # Lint check
 RESEND_API_KEY=<your-resend-api-key>
 GOOGLE_SERVICE_ACCOUNT_JSON=<full service-account JSON blob>
 GOOGLE_SHEET_ID=<target-google-sheet-id>
-GOOGLE_SHEET_ID_SJU=<sheet id for the free /model-registration-sju flow>
+GOOGLE_SHEET_ID_SJU=<sheet id for the free /model-registration-StJosephUniversity flow>
+GOOGLE_SHEET_ID_JAIN=<sheet id for the free /model-registration-JainUniversityJcroad flow>
 RAZORPAY_KEY_ID=<rzp_test_ or rzp_live_ key id>
 RAZORPAY_KEY_SECRET=<razorpay key secret — server only>
 RAZORPAY_WEBHOOK_SECRET=<razorpay webhook signing secret — server only>

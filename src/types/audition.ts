@@ -39,6 +39,9 @@ export type AuditionData = {
   signatureName: string;
   signatureDate: string;
 
+  // University flows only (e.g. Jain University) — mandatory there, absent elsewhere.
+  universityRollNumber?: string;
+
   // Payment — populated server-side after Razorpay signature verification.
   // Never trusted from the client for the amount/status.
   payment?: PaymentInfo;

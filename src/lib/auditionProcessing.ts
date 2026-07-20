@@ -26,8 +26,13 @@ export const SHEET_HEADERS = [
 // Free flow (e.g. SJU): the 25 form columns only, no payment columns.
 export const SHEET_HEADERS_FREE = SHEET_HEADERS.slice(0, 25);
 
+// Free flow + University Roll Number (e.g. Jain University): 25 form columns
+// plus the roll number appended at the end.
+export const SHEET_HEADERS_FREE_WITH_ROLL = [...SHEET_HEADERS_FREE, "University Roll Number"];
+
 const SHEET_NAME = "Sheet1";
 const FREE_APPEND_RANGE = `${SHEET_NAME}!A:Y`; // A..Y = 25 columns
+const FREE_WITH_ROLL_APPEND_RANGE = `${SHEET_NAME}!A:Z`; // A..Z = 26 columns
 // A..AD = 30 columns
 const APPEND_RANGE = `${SHEET_NAME}!A:AD`;
 // Payment columns Z:AD — [Order ID, Payment ID, Amount, Status, Paid At]
@@ -104,6 +109,7 @@ function buildAdminHtml(data: AuditionData, ts: string, badge = "PAID APPLICATIO
     <table cellpadding="0" cellspacing="0">
       ${field("Email", data.email)}
       ${field("Phone", data.phone)}
+      ${field("University Roll Number", data.universityRollNumber ?? "")}
       ${field("Date of Birth", data.dob)}
       ${field("Age", data.age)}
       ${field("Gender", g)}
@@ -517,15 +523,70 @@ async function appendFreeRow(sheetId: string | undefined, data: AuditionData): P
   });
 }
 
+/** Append a free registration row with University Roll Number (26 columns). */
+async function appendFreeRowWithRoll(
+  sheetId: string | undefined,
+  envVarName: string,
+  data: AuditionData
+): Promise<void> {
+  if (!sheetId) {
+    console.error(`[Sheets] ${envVarName} not configured — free registration NOT recorded.`);
+    return;
+  }
+  const client = getSheetsClient(sheetId);
+  if (!client) {
+    console.error("[Sheets] Service account not configured — free registration NOT recorded.");
+    return;
+  }
+  const { sheets } = client;
+
+  const check = await sheets.spreadsheets.values.get({
+    spreadsheetId: sheetId,
+    range: `${SHEET_NAME}!A1:Z1`,
+  });
+  const headerRow = check.data.values?.[0] ?? [];
+  if (headerRow.length < SHEET_HEADERS_FREE_WITH_ROLL.length) {
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: sheetId,
+      range: `${SHEET_NAME}!A1`,
+      valueInputOption: "RAW",
+      requestBody: { values: [SHEET_HEADERS_FREE_WITH_ROLL] },
+    });
+  }
+
+  const row = [...buildSheetRow(data).slice(0, 25), data.universityRollNumber ?? ""];
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: sheetId,
+    range: FREE_WITH_ROLL_APPEND_RANGE,
+    valueInputOption: "RAW",
+    requestBody: { values: [row] },
+  });
+}
+
+/** Per-university branding for the free registration pipeline. */
+export type FreeFlowConfig = {
+  /** Short badge shown in the admin email header, e.g. "SJU · FREE". */
+  badge: string;
+  /** Text inserted into the admin email subject, e.g. "SJU Registration". */
+  subjectLabel: string;
+  /** Google Sheet id for this university's registrations. */
+  sheetId: string | undefined;
+  /** Name of the env var supplying sheetId, used only in log messages. */
+  sheetIdEnvVar: string;
+  /** True if the sheet/row should include the University Roll Number column. */
+  includeRollNumber?: boolean;
+};
+
 /**
  * Free registration pipeline (no payment): render the PDF, email applicant +
- * admin, and append the form row to the given sheet. The admin email is the
- * source of truth (throws if it fails); the sheet write is non-fatal.
+ * admin, and append the form row to the given university's sheet. The admin
+ * email is the source of truth (throws if it fails); the sheet write is
+ * non-fatal.
  */
 export async function processFreeSubmission(
   data: AuditionData,
   apiKey: string,
-  sheetId: string | undefined
+  config: FreeFlowConfig
 ): Promise<void> {
   const pdfElement = React.createElement(AuditionPDF, { data });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -544,8 +605,8 @@ export async function processFreeSubmission(
       from: "A7 Entertainment <noreply@a7entertainment.in>",
       to: ["enquiry@a7entertainment.in"],
       reply_to: data.email,
-      subject: `Orion Model Hunt — SJU Registration — ${data.fullName}`,
-      html: buildAdminHtml(data, timestamp, "SJU · FREE"),
+      subject: `Orion Model Hunt — ${config.subjectLabel} — ${data.fullName}`,
+      html: buildAdminHtml(data, timestamp, config.badge),
       attachments: [
         { filename: `Registration_${safeName}.pdf`, content: Buffer.from(pdfBuffer) },
       ],
@@ -564,7 +625,11 @@ export async function processFreeSubmission(
     );
   }
 
-  await appendFreeRow(sheetId, data).catch((err) =>
+  const appendPromise = config.includeRollNumber
+    ? appendFreeRowWithRoll(config.sheetId, config.sheetIdEnvVar, data)
+    : appendFreeRow(config.sheetId, data);
+
+  await appendPromise.catch((err) =>
     console.error("[Sheets] Free append FAILED — reconcile manually:", err)
   );
 }

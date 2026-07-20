@@ -208,6 +208,9 @@ export function AuditionPDF({ data }: { data: AuditionData }) {
               </View>
               <Row>
                 <Field label="Phone" value={data.phone} />
+                {data.universityRollNumber ? (
+                  <Field label="University Roll Number" value={data.universityRollNumber} />
+                ) : null}
               </Row>
               <Row>
                 <Field label="E-Mail" value={data.email} />

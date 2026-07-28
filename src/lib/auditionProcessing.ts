@@ -27,8 +27,12 @@ export const SHEET_HEADERS = [
 export const SHEET_HEADERS_FREE = SHEET_HEADERS.slice(0, 25);
 
 // Free flow + University Roll Number (e.g. Jain University): 25 form columns
-// plus the roll number appended at the end.
-export const SHEET_HEADERS_FREE_WITH_ROLL = [...SHEET_HEADERS_FREE, "University Roll Number"];
+// with the roll number inserted right after Full Name (column C).
+export const SHEET_HEADERS_FREE_WITH_ROLL = [
+  ...SHEET_HEADERS_FREE.slice(0, 2), // Timestamp, Full Name
+  "University Roll Number",
+  ...SHEET_HEADERS_FREE.slice(2),
+];
 
 const SHEET_NAME = "Sheet1";
 const FREE_APPEND_RANGE = `${SHEET_NAME}!A:Y`; // A..Y = 25 columns
@@ -545,7 +549,10 @@ async function appendFreeRowWithRoll(
     range: `${SHEET_NAME}!A1:Z1`,
   });
   const headerRow = check.data.values?.[0] ?? [];
-  if (headerRow.length < SHEET_HEADERS_FREE_WITH_ROLL.length) {
+  // Re-check by content (not just length) so an older header order (e.g. Roll
+  // Number previously appended at column Z) also self-heals to the new order.
+  const headersMatch = SHEET_HEADERS_FREE_WITH_ROLL.every((h, i) => headerRow[i] === h);
+  if (!headersMatch) {
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
       range: `${SHEET_NAME}!A1`,
@@ -554,7 +561,12 @@ async function appendFreeRowWithRoll(
     });
   }
 
-  const row = [...buildSheetRow(data).slice(0, 25), data.universityRollNumber ?? ""];
+  const formCols = buildSheetRow(data).slice(0, 25);
+  const row = [
+    ...formCols.slice(0, 2), // Timestamp, Full Name
+    data.universityRollNumber ?? "",
+    ...formCols.slice(2),
+  ];
   await sheets.spreadsheets.values.append({
     spreadsheetId: sheetId,
     range: FREE_WITH_ROLL_APPEND_RANGE,

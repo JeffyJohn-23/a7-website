@@ -22,6 +22,7 @@ GOOGLE_SHEET_ID_SJU=<sheet id for the free /model-registration-StJosephUniversit
 GOOGLE_SHEET_ID_JAIN=<sheet id for the free /model-registration-JainUniversityJcroad flow>
 GOOGLE_SHEET_ID_PRESIDENCY=<sheet id for the free /model-registration-PresidencyUniversity flow>
 GOOGLE_SHEET_ID_BMS=<sheet id for the free /model-registration-BMSCollege flow>
+GOOGLE_SHEET_ID_JAINCMS=<sheet id for the free /model-registration-JainCMS flow>
 RAZORPAY_KEY_ID=<rzp_test_ or rzp_live_ key id>
 RAZORPAY_KEY_SECRET=<razorpay key secret — server only>
 RAZORPAY_WEBHOOK_SECRET=<razorpay webhook signing secret — server only>

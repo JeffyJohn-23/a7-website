@@ -4,7 +4,7 @@
 // To change the fee, edit ONLY these values (and the figure quoted in the legal
 // pages: /terms-and-conditions and /refund-policy).
 
-export const REGISTRATION_FEE_PAISE = 19900; // ₹199.00
+export const REGISTRATION_FEE_PAISE = 49900; // ₹499.00
 export const REGISTRATION_FEE_CURRENCY = "INR";
 
 /** Human-readable label, e.g. "₹499". */

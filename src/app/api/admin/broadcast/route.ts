@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/adminAuth";
-import { fetchPaidApplicants, sendBroadcast, isBroadcastDemoMode } from "@/lib/broadcast";
+import { fetchBroadcastRecipients, sendBroadcast } from "@/lib/broadcast";
 
 export const runtime = "nodejs";
 export const maxDuration = 300; // large sends take time (batched)
@@ -12,16 +12,12 @@ export async function GET() {
   }
 
   try {
-    const recipients = await fetchPaidApplicants();
-    return NextResponse.json({
-      success: true,
-      count: recipients.length,
-      demo: isBroadcastDemoMode(),
-    });
+    const recipients = await fetchBroadcastRecipients();
+    return NextResponse.json({ success: true, count: recipients.length });
   } catch (err) {
     console.error("[/api/admin/broadcast] preview failed:", err);
     return NextResponse.json(
-      { success: false, error: "Could not read the applicant sheet." },
+      { success: false, error: "Could not read the broadcast sheet." },
       { status: 500 }
     );
   }
@@ -65,16 +61,16 @@ export async function POST(request: Request) {
   }
 
   try {
-    const recipients = await fetchPaidApplicants();
+    const recipients = await fetchBroadcastRecipients();
     if (recipients.length === 0) {
       return NextResponse.json(
-        { success: false, error: "No paid applicants found to email." },
+        { success: false, error: "No recipients found in the broadcast sheet." },
         { status: 400 }
       );
     }
 
     const result = await sendBroadcast(recipients, subject, message, apiKey);
-    return NextResponse.json({ success: true, ...result, demo: isBroadcastDemoMode() });
+    return NextResponse.json({ success: true, ...result });
   } catch (err) {
     console.error("[/api/admin/broadcast]", err);
     return NextResponse.json(

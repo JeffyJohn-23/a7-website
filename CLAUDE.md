@@ -27,7 +27,7 @@ GOOGLE_SHEET_ID_BGS=<sheet id for the free /model-registration-BGS flow>
 GOOGLE_SHEET_ID_NEWHORIZON=<sheet id for the free /model-registration-NewHorizon flow>
 GOOGLE_SHEET_ID_BMSENGINEERING=<sheet id for the free /model-registration-BMSEngineering flow>
 ADMIN_PASSWORD=<password gating /admin/broadcast — server only>
-GOOGLE_SHEET_ID_BROADCAST_DEMO=<optional; if set, /admin/broadcast reads this sheet instead of GOOGLE_SHEET_ID (demo mode). Unset to send to live applicants>
+GOOGLE_SHEET_ID_BROADCAST=<sheet id for the /admin/broadcast recipient list — columns A=Full Name, B=Email. Read-only; never written to>
 RAZORPAY_KEY_ID=<rzp_test_ or rzp_live_ key id>
 RAZORPAY_KEY_SECRET=<razorpay key secret — server only>
 RAZORPAY_WEBHOOK_SECRET=<razorpay webhook signing secret — server only>

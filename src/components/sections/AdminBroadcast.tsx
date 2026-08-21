@@ -68,7 +68,6 @@ function ComposePanel() {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [count, setCount] = useState<number | null>(null);
-  const [demo, setDemo] = useState(false);
   const [countError, setCountError] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [sending, setSending] = useState(false);
@@ -79,11 +78,10 @@ function ComposePanel() {
     try {
       const res = await fetch("/api/admin/broadcast");
       const data = (await res.json()) as {
-        success: boolean; count?: number; demo?: boolean; error?: string;
+        success: boolean; count?: number; error?: string;
       };
       if (data.success && typeof data.count === "number") {
         setCount(data.count);
-        setDemo(Boolean(data.demo));
       } else setCountError(data.error ?? "Could not load recipients.");
     } catch {
       setCountError("Could not load recipients.");
@@ -128,12 +126,9 @@ function ComposePanel() {
             <path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
-        <h2 className="text-white text-2xl font-bold mb-4">
-          {demo ? "Demo Broadcast Sent" : "Broadcast Sent"}
-        </h2>
+        <h2 className="text-white text-2xl font-bold mb-4">Broadcast Sent</h2>
         <p className="text-[#666] text-base leading-relaxed mb-2">
-          Delivered to <span className="text-white">{result.sent}</span> of {result.total}{" "}
-          {demo ? "demo-sheet recipients" : "applicants"}.
+          Delivered to <span className="text-white">{result.sent}</span> of {result.total} recipients.
         </p>
         {result.failed > 0 && (
           <p className="text-[#FF0000] text-sm mb-6">
@@ -155,27 +150,11 @@ function ComposePanel() {
 
   return (
     <div className="max-w-2xl">
-      {/* Demo-mode banner — impossible to mistake a rehearsal for a live send */}
-      {demo && (
-        <div
-          className="border border-[#FF0000]"
-          style={{ padding: "0.85rem 1.25rem", marginBottom: "var(--space-md)", background: "rgba(255,0,0,0.08)" }}
-        >
-          <p className="text-[#FF0000] text-[10px] font-bold tracking-[0.3em] uppercase">
-            Demo Mode
-          </p>
-          <p className="text-[11px] text-[#999] leading-relaxed" style={{ marginTop: "0.4rem" }}>
-            Reading from the demo sheet (GOOGLE_SHEET_ID_BROADCAST_DEMO). Real applicants
-            will NOT be emailed. Remove that variable in Vercel to send to live applicants.
-          </p>
-        </div>
-      )}
-
       {/* Recipient count */}
       <div className="border border-[#333]" style={{ padding: "1rem 1.25rem", marginBottom: "var(--space-lg)" }}>
         <div className="flex items-baseline justify-between gap-4 flex-wrap">
           <span className="text-[10px] text-[#555] tracking-widest uppercase">
-            Recipients — {demo ? "Demo Sheet" : "Paid Applicants"}
+            Recipients — Broadcast List
           </span>
           <span className="text-white text-xl font-bold">
             {countError ? "—" : count === null ? "…" : count}
@@ -184,7 +163,7 @@ function ComposePanel() {
         <p className="text-[11px] text-[#666] leading-relaxed" style={{ marginTop: "0.6rem" }}>
           {countError
             ? countError
-            : "Only applicants with a Paid status are included. Each person receives their own email — recipients never see one another's addresses."}
+            : "Read from the broadcast sheet (Name + Email). Each person receives their own email — recipients never see one another's addresses. The sheet is never modified."}
         </p>
       </div>
 
@@ -227,8 +206,8 @@ function ComposePanel() {
         {confirming ? (
           <div className="border border-[#FF0000]" style={{ padding: "1rem 1.25rem" }}>
             <p className="text-white text-sm leading-relaxed" style={{ marginBottom: "var(--space-md)" }}>
-              Send this email to <span className="font-bold">{count}</span>{" "}
-              {demo ? "demo-sheet recipients" : "live applicants"}? This cannot be undone.
+              Send this email to <span className="font-bold">{count}</span> recipients?
+              This cannot be undone.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <button

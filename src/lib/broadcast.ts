@@ -1,17 +1,19 @@
 import { google } from "googleapis";
 import { Resend } from "resend";
-import { STATUS_PAID } from "@/lib/auditionProcessing";
 
 // ─── Applicant broadcast ────────────────────────────────────────────────────
-// Reads paid applicants from the main registration sheet and emails them
-// individually (never a shared To:/CC), batched to respect Resend's limits.
+// Reads the curated broadcast list (GOOGLE_SHEET_ID_BROADCAST) and emails each
+// person individually (never a shared To:/CC), batched to respect Resend's
+// limits. This sheet is READ-ONLY to this code — nothing is ever written back.
+//
+// Expected sheet shape (row 1 is a header, data starts at row 2):
+//   A = Full Name
+//   B = Email
 
 const SHEET_NAME = "Sheet1";
-// Columns: B = Full Name, H = Email, AC = Payment Status
-const BROADCAST_RANGE = `${SHEET_NAME}!A2:AD`;
-const COL_FULL_NAME = 1; // B
-const COL_EMAIL = 7; // H
-const COL_PAYMENT_STATUS = 28; // AC
+const BROADCAST_RANGE = `${SHEET_NAME}!A2:B`;
+const COL_FULL_NAME = 0; // A
+const COL_EMAIL = 1; // B
 
 // Resend: batch endpoint accepts up to 100 messages per call; API limit is
 // 10 req/s. 100/batch with a small gap keeps us far under both.
@@ -23,34 +25,17 @@ export type Recipient = { email: string; name: string };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * Which sheet the broadcast tool reads from.
- *
- * If GOOGLE_SHEET_ID_BROADCAST_DEMO is set, it wins — letting you rehearse a
- * broadcast against a throwaway sheet without repointing GOOGLE_SHEET_ID, which
- * the LIVE paid registration form writes to. Unset the demo var to go live.
+ * Fetch unique, valid recipients from the dedicated broadcast sheet.
+ * Rows without a valid email are skipped; duplicates are collapsed.
  */
-export function resolveBroadcastSheet(): { sheetId?: string; isDemo: boolean } {
-  const demo = process.env.GOOGLE_SHEET_ID_BROADCAST_DEMO;
-  if (demo) return { sheetId: demo, isDemo: true };
-  return { sheetId: process.env.GOOGLE_SHEET_ID, isDemo: false };
-}
-
-/** True when the broadcast tool is pointed at the demo sheet. */
-export function isBroadcastDemoMode(): boolean {
-  return resolveBroadcastSheet().isDemo;
-}
-
-/**
- * Fetch unique, valid recipient addresses of applicants who actually paid.
- * Pending / abandoned rows are deliberately excluded.
- */
-export async function fetchPaidApplicants(): Promise<Recipient[]> {
+export async function fetchBroadcastRecipients(): Promise<Recipient[]> {
   const creds = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  const { sheetId, isDemo } = resolveBroadcastSheet();
+  const sheetId = process.env.GOOGLE_SHEET_ID_BROADCAST;
   if (!creds || !sheetId) {
-    throw new Error("Google Sheets is not configured (GOOGLE_SERVICE_ACCOUNT_JSON / GOOGLE_SHEET_ID).");
+    throw new Error(
+      "Broadcast sheet is not configured (GOOGLE_SERVICE_ACCOUNT_JSON / GOOGLE_SHEET_ID_BROADCAST)."
+    );
   }
-  void isDemo; // surfaced to the UI via getBroadcastMode(), not needed here
 
   const auth = new google.auth.GoogleAuth({
     credentials: JSON.parse(creds) as object,
@@ -69,12 +54,10 @@ export async function fetchPaidApplicants(): Promise<Recipient[]> {
 
   for (const row of rows) {
     const email = String(row[COL_EMAIL] ?? "").trim();
-    const status = String(row[COL_PAYMENT_STATUS] ?? "").trim().toLowerCase();
-    if (status !== STATUS_PAID.toLowerCase()) continue; // paid applicants only
-    if (!EMAIL_RE.test(email)) continue;
+    if (!EMAIL_RE.test(email)) continue; // skips blanks and malformed rows
 
     const key = email.toLowerCase();
-    if (seen.has(key)) continue; // de-duplicate repeat applicants
+    if (seen.has(key)) continue; // de-duplicate
     seen.add(key);
 
     recipients.push({

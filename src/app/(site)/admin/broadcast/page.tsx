@@ -25,7 +25,7 @@ export default async function AdminBroadcastPage() {
             BROADCAST
           </h1>
           <p className="text-[#555] text-sm tracking-widest uppercase">
-            Email all paid model registration applicants.
+            Email everyone on the broadcast list.
           </p>
         </div>
       </div>

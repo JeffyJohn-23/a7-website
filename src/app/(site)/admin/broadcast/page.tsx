@@ -1,19 +1,16 @@
 import type { Metadata } from "next";
 import { AdminBroadcast } from "@/components/sections/AdminBroadcast";
-import { isAdminAuthenticated } from "@/lib/adminAuth";
 
 export const metadata: Metadata = {
   title: "Broadcast — Admin",
   robots: { index: false, follow: false, nocache: true },
 };
 
-// Auth is re-checked server-side on every API call; this only decides which
-// panel to render first.
+// Never cached, and the password is always required on load — a refresh or a
+// revisit re-prompts rather than resuming a previous session.
 export const dynamic = "force-dynamic";
 
-export default async function AdminBroadcastPage() {
-  const authed = await isAdminAuthenticated();
-
+export default function AdminBroadcastPage() {
   return (
     <main className="bg-black min-h-screen">
       <div
@@ -30,7 +27,7 @@ export default async function AdminBroadcastPage() {
         </div>
       </div>
 
-      <AdminBroadcast initiallyAuthed={authed} />
+      <AdminBroadcast />
     </main>
   );
 }

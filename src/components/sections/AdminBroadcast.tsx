@@ -247,13 +247,35 @@ function ComposePanel() {
 
 // ─── Root ───────────────────────────────────────────────────────────────────
 
-export function AdminBroadcast({ initiallyAuthed }: { initiallyAuthed: boolean }) {
-  const [authed, setAuthed] = useState(initiallyAuthed);
+export function AdminBroadcast() {
+  // Always starts locked — a page load or refresh re-prompts for the password,
+  // even if a cookie from a previous login is still present.
+  const [authed, setAuthed] = useState(false);
+
+  const logOut = async () => {
+    await fetch("/api/admin/login", { method: "DELETE" }).catch(() => {});
+    setAuthed(false);
+  };
 
   return (
     <section className="bg-black section-padding" style={{ paddingTop: "3rem", paddingBottom: "6rem" }}>
       <div className="max-w-4xl mx-auto">
-        {authed ? <ComposePanel /> : <LoginPanel onSuccess={() => setAuthed(true)} />}
+        {authed ? (
+          <>
+            <div className="flex justify-end" style={{ marginBottom: "var(--space-md)" }}>
+              <button
+                onClick={logOut}
+                className="text-[10px] text-[#555] hover:text-[#FF0000] transition-colors tracking-[0.25em] uppercase"
+                data-cursor-hover
+              >
+                Log Out
+              </button>
+            </div>
+            <ComposePanel />
+          </>
+        ) : (
+          <LoginPanel onSuccess={() => setAuthed(true)} />
+        )}
       </div>
     </section>
   );

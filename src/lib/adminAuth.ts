@@ -38,7 +38,14 @@ export function verifyAdminPassword(submitted: string): boolean {
   return safeEqual(submitted, expected);
 }
 
-/** Issue the admin session cookie (httpOnly, 12h). */
+/**
+ * Issue the admin cookie.
+ *
+ * Deliberately a *session* cookie (no maxAge) with a short server-side window:
+ * it authorises the API calls made from the page you just logged into, but the
+ * page itself always re-prompts for the password on load (see the page's
+ * `forceLogin`), so a refresh never silently grants access.
+ */
 export async function createAdminSession(): Promise<void> {
   const store = await cookies();
   store.set(COOKIE_NAME, sessionToken(), {
@@ -46,7 +53,7 @@ export async function createAdminSession(): Promise<void> {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 12,
+    // No maxAge — cleared when the browser closes.
   });
 }
 

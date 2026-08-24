@@ -4,6 +4,7 @@ import { appendPendingRow, STATUS_PENDING } from "@/lib/auditionProcessing";
 import {
   REGISTRATION_FEE_PAISE,
   REGISTRATION_FEE_CURRENCY,
+  PAID_REGISTRATION_OPEN,
 } from "@/lib/registration";
 import type { AuditionData } from "@/types/audition";
 
@@ -13,6 +14,14 @@ export const runtime = "nodejs";
 // "Pending" lead row in the sheet. The amount is fixed server-side from
 // REGISTRATION_FEE_PAISE — any client-supplied amount is ignored.
 export async function POST(request: Request) {
+  // Registration closed — refuse before creating any Razorpay order.
+  if (!PAID_REGISTRATION_OPEN) {
+    return NextResponse.json(
+      { success: false, error: "Registration is currently closed." },
+      { status: 503 }
+    );
+  }
+
   if (!isRazorpayConfigured()) {
     return NextResponse.json(
       { success: false, error: "Payments are temporarily unavailable. Please try again later." },

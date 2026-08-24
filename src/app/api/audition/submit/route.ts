@@ -17,6 +17,10 @@ type SubmitBody = AuditionData & {
   razorpay_signature?: string;
 };
 
+// NOTE: While registration is closed (PAID_REGISTRATION_OPEN = false), no new
+// orders can be created, so this route is unreachable for new applicants. It is
+// deliberately left working so that an payment already captured in-flight can
+// still be completed — a paid applicant must never lose their application.
 export async function POST(request: Request) {
   try {
     const apiKey = process.env.RESEND_API_KEY;

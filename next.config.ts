@@ -10,6 +10,19 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdn.pixabay.com" },
     ],
   },
+  async redirects() {
+    return [
+      // Paid model registration is currently closed — send visitors to Instagram.
+      // Temporary (307) so browsers/search engines don't cache it permanently;
+      // remove this entry to bring the form back.
+      {
+        source: "/model-registration",
+        destination:
+          "https://www.instagram.com/a7entertainment?igsi=MTBybzljNHozems2bg==",
+        permanent: false,
+      },
+    ];
+  },
   async headers() {
     return [
       {

@@ -14,6 +14,29 @@ type EmployeeRow = {
   needs_password: boolean;
 };
 
+type Shift = {
+  id: number;
+  employee_id: number;
+  clock_in_at: string;
+  clock_out_at: string | null;
+  work_date: string;
+  note: string | null;
+};
+
+/** `datetime-local` needs "YYYY-MM-DDTHH:mm" in IST, not a UTC ISO string. */
+function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  const ist = new Date(d.getTime() + (330 + d.getTimezoneOffset()) * 60000);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${ist.getFullYear()}-${p(ist.getMonth() + 1)}-${p(ist.getDate())}T${p(ist.getHours())}:${p(ist.getMinutes())}`;
+}
+
+/** Convert an IST "YYYY-MM-DDTHH:mm" back to a real instant. */
+function fromLocalInput(local: string): string {
+  // Treat the entered wall-clock time as IST (+05:30).
+  return new Date(`${local}:00+05:30`).toISOString();
+}
+
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-IN", {
     timeZone: "Asia/Kolkata",
@@ -54,6 +77,94 @@ export function AttendanceAdmin() {
   const [newRole, setNewRole] = useState<"employee" | "admin">("employee");
   const [addBusy, setAddBusy] = useState(false);
   const [addError, setAddError] = useState("");
+
+  // ── Corrections ──
+  const [fixFor, setFixFor] = useState<EmployeeRow | null>(null);
+  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [editing, setEditing] = useState<Shift | null>(null);
+  const [editIn, setEditIn] = useState("");
+  const [editOut, setEditOut] = useState("");
+  const [editNote, setEditNote] = useState("");
+  const [fixBusy, setFixBusy] = useState(false);
+  const [fixError, setFixError] = useState("");
+
+  const openCorrections = async (emp: EmployeeRow) => {
+    setFixFor(emp);
+    setEditing(null);
+    setFixError("");
+    setShifts([]);
+    try {
+      const res = await fetch(`/api/attendance/admin/correct?employeeId=${emp.id}`);
+      const data = (await res.json()) as { success: boolean; shifts?: Shift[]; error?: string };
+      if (data.success) setShifts(data.shifts ?? []);
+      else setFixError(data.error ?? "Could not load shifts.");
+    } catch {
+      setFixError("Could not load shifts.");
+    }
+  };
+
+  const startEdit = (s: Shift) => {
+    setEditing(s);
+    setEditIn(toLocalInput(s.clock_in_at));
+    setEditOut(s.clock_out_at ? toLocalInput(s.clock_out_at) : "");
+    setEditNote(s.note ?? "");
+    setFixError("");
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    setFixError("");
+    setFixBusy(true);
+    try {
+      const res = await fetch("/api/attendance/admin/correct", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editing.id,
+          clockInAt: fromLocalInput(editIn),
+          clockOutAt: editOut ? fromLocalInput(editOut) : null,
+          note: editNote,
+        }),
+      });
+      const data = (await res.json()) as { success: boolean; error?: string };
+      if (data.success) {
+        setEditing(null);
+        if (fixFor) await openCorrections(fixFor);
+        await load();
+      } else {
+        setFixError(data.error ?? "Could not save the correction.");
+      }
+    } catch {
+      setFixError("Network error.");
+    } finally {
+      setFixBusy(false);
+    }
+  };
+
+  const deleteShift = async (s: Shift) => {
+    if (!window.confirm("Delete this shift permanently? This cannot be undone.")) return;
+    setFixError("");
+    setFixBusy(true);
+    try {
+      const res = await fetch("/api/attendance/admin/correct", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: s.id }),
+      });
+      const data = (await res.json()) as { success: boolean; error?: string };
+      if (data.success) {
+        setEditing(null);
+        if (fixFor) await openCorrections(fixFor);
+        await load();
+      } else {
+        setFixError(data.error ?? "Could not delete the shift.");
+      }
+    } catch {
+      setFixError("Network error.");
+    } finally {
+      setFixBusy(false);
+    }
+  };
 
   const load = useCallback(async () => {
     setError("");
@@ -359,17 +470,185 @@ export function AttendanceAdmin() {
                   </p>
                   <p className="text-[#555] text-xs truncate">{e.email}</p>
                 </div>
-                <button
-                  onClick={() => setActive(e.id, !e.active)}
-                  className="text-[10px] text-[#555] hover:text-[#FF0000] transition-colors tracking-[0.2em] uppercase shrink-0"
-                  data-cursor-hover
-                >
-                  {e.active ? "Deactivate" : "Reactivate"}
-                </button>
+                <div className="flex items-center gap-4 shrink-0">
+                  <button
+                    onClick={() => void openCorrections(e)}
+                    className="text-[10px] text-[#555] hover:text-[#FF0000] transition-colors tracking-[0.2em] uppercase"
+                    data-cursor-hover
+                  >
+                    Shifts
+                  </button>
+                  <button
+                    onClick={() => setActive(e.id, !e.active)}
+                    className="text-[10px] text-[#555] hover:text-[#FF0000] transition-colors tracking-[0.2em] uppercase"
+                    data-cursor-hover
+                  >
+                    {e.active ? "Deactivate" : "Reactivate"}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
+
+        {/* ── Corrections panel ── */}
+        {fixFor && (
+          <div
+            className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto"
+            style={{ background: "rgba(0,0,0,0.92)", padding: "2rem 1rem" }}
+          >
+            <div className="w-full max-w-lg">
+              <div
+                className="flex items-start justify-between gap-4"
+                style={{ marginBottom: "var(--space-lg)" }}
+              >
+                <div>
+                  <p className="text-[10px] text-[#FF0000] tracking-[0.3em] uppercase">
+                    Correct Shifts
+                  </p>
+                  <p className="text-white text-lg font-bold">{fixFor.name}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setFixFor(null);
+                    setEditing(null);
+                  }}
+                  className="text-[10px] text-[#666] hover:text-white transition-colors tracking-[0.25em] uppercase"
+                  data-cursor-hover
+                >
+                  Close
+                </button>
+              </div>
+
+              {fixError && (
+                <p className="text-[#FF0000] text-sm" style={{ marginBottom: "var(--space-md)" }}>
+                  {fixError}
+                </p>
+              )}
+
+              {/* Edit form */}
+              {editing && (
+                <div
+                  className="border border-[#FF0000]"
+                  style={{
+                    padding: "1rem 1.25rem",
+                    marginBottom: "var(--space-lg)",
+                    background: "rgba(255,0,0,0.06)",
+                  }}
+                >
+                  <p className="text-[10px] text-[#FF0000] tracking-[0.3em] uppercase" style={{ marginBottom: "var(--space-md)" }}>
+                    Editing {String(editing.work_date).slice(0, 10)}
+                  </p>
+
+                  <div className="flex flex-col" style={{ gap: "var(--space-md)" }}>
+                    <div className="flex flex-col justify-end border-b border-[#333] pb-1">
+                      <span className="block text-[10px] text-[#555] tracking-widest uppercase" style={{ marginBottom: "var(--space-xs)" }}>
+                        Clock In (IST)
+                      </span>
+                      <input
+                        type="datetime-local"
+                        value={editIn}
+                        onChange={(ev) => setEditIn(ev.target.value)}
+                        className="bg-[#000] [color-scheme:dark] text-white text-sm py-1 outline-none"
+                        style={{ border: "none" }}
+                        data-cursor-hover
+                      />
+                    </div>
+
+                    <div className="flex flex-col justify-end border-b border-[#333] pb-1">
+                      <span className="block text-[10px] text-[#555] tracking-widest uppercase" style={{ marginBottom: "var(--space-xs)" }}>
+                        Clock Out (IST) — leave blank to reopen
+                      </span>
+                      <input
+                        type="datetime-local"
+                        value={editOut}
+                        onChange={(ev) => setEditOut(ev.target.value)}
+                        className="bg-[#000] [color-scheme:dark] text-white text-sm py-1 outline-none"
+                        style={{ border: "none" }}
+                        data-cursor-hover
+                      />
+                    </div>
+
+                    <div className="flex flex-col justify-end border-b border-[#333] pb-1">
+                      <span className="block text-[10px] text-[#555] tracking-widest uppercase" style={{ marginBottom: "var(--space-xs)" }}>
+                        Reason <span className="text-[#FF0000]">*</span>
+                      </span>
+                      <input
+                        type="text"
+                        value={editNote}
+                        onChange={(ev) => setEditNote(ev.target.value)}
+                        placeholder="e.g. Forgot to clock out"
+                        required
+                        className="bg-[#000] text-white text-sm py-1 outline-none placeholder:text-white/20"
+                        style={{ WebkitBoxShadow: "0 0 0 1000px #000 inset", WebkitTextFillColor: "white", border: "none" }}
+                        data-cursor-hover
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3" style={{ marginTop: "var(--space-lg)" }}>
+                    <button
+                      onClick={() => void saveEdit()}
+                      disabled={fixBusy || !editNote.trim()}
+                      className="text-xs tracking-[0.2em] uppercase font-bold py-2 px-4 disabled:opacity-40"
+                      style={{ background: "#FF0000", color: "#fff", border: "1px solid #FF0000" }}
+                      data-cursor-hover
+                    >
+                      {fixBusy ? "Saving…" : "Save Correction"}
+                    </button>
+                    <button
+                      onClick={() => setEditing(null)}
+                      disabled={fixBusy}
+                      className="text-xs tracking-[0.2em] uppercase py-2 px-4 border border-[#333] text-white hover:border-white transition-colors disabled:opacity-40"
+                      data-cursor-hover
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => void deleteShift(editing)}
+                      disabled={fixBusy}
+                      className="text-xs tracking-[0.2em] uppercase py-2 px-4 text-[#666] hover:text-[#FF0000] transition-colors disabled:opacity-40 ml-auto"
+                      data-cursor-hover
+                    >
+                      Delete Shift
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Shift list */}
+              {shifts.length === 0 ? (
+                <p className="text-[#666] text-sm">No shifts recorded for this employee.</p>
+              ) : (
+                <div className="flex flex-col" style={{ gap: "0.5rem" }}>
+                  {shifts.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => startEdit(s)}
+                      className="w-full text-left border-b border-[#1a1a1a] pb-2 hover:border-[#FF0000] transition-colors"
+                      data-cursor-hover
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-white text-sm">
+                          {String(s.work_date).slice(0, 10)}
+                        </span>
+                        <span className="text-xs tabular-nums" style={{ color: s.clock_out_at ? "#999" : "#FF0000" }}>
+                          {formatTime(s.clock_in_at)} →{" "}
+                          {s.clock_out_at ? formatTime(s.clock_out_at) : "OPEN"}
+                        </span>
+                      </div>
+                      {s.note && (
+                        <p className="text-[#555] text-[10px] tracking-wide" style={{ marginTop: "0.2rem" }}>
+                          Corrected: {s.note}
+                        </p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

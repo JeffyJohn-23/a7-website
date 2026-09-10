@@ -27,6 +27,10 @@ GOOGLE_SHEET_ID_BGS=<sheet id for the free /model-registration-BGS flow>
 GOOGLE_SHEET_ID_NEWHORIZON=<sheet id for the free /model-registration-NewHorizon flow>
 GOOGLE_SHEET_ID_BMSENGINEERING=<sheet id for the free /model-registration-BMSEngineering flow>
 ADMIN_PASSWORD=<password gating /admin/broadcast — server only>
+DATABASE_URL=<Neon Postgres connection string — injected by the Vercel Neon integration>
+AUTH_SECRET=<random 32-byte hex; signs employee attendance session cookies — server only>
+BLOB_READ_WRITE_TOKEN=<Vercel Blob token — injected when a Blob store is connected; stores attendance selfies>
+CRON_SECRET=<random hex; authorises the nightly selfie-retention cron — server only>
 GOOGLE_SHEET_ID_BROADCAST=<sheet id for the /admin/broadcast recipient list — columns A=Full Name, B=Email. Read-only; never written to>
 RAZORPAY_KEY_ID=<rzp_test_ or rzp_live_ key id>
 RAZORPAY_KEY_SECRET=<razorpay key secret — server only>

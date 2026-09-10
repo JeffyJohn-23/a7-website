@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { SelfieCapture } from "@/components/ui/SelfieCapture";
 
 type Shift = { id: number; clock_in_at: string; clock_out_at: string | null };
 
@@ -36,6 +37,8 @@ export function AttendanceClock() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  /** Which punch we're taking a photo for, if the camera is open. */
+  const [capturing, setCapturing] = useState<"in" | "out" | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -75,14 +78,38 @@ export function AttendanceClock() {
     return () => clearInterval(t);
   }, []);
 
-  const punch = async (action: "in" | "out") => {
+  /** Upload the selfie, then punch. A failed upload must not punch. */
+  const punchWithPhoto = async (action: "in" | "out", photoBase64: string) => {
+    setCapturing(null);
+    setError("");
+    setBusy(true);
+    try {
+      const up = await fetch("/api/attendance/photo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoBase64, kind: action }),
+      });
+      const upData = (await up.json()) as { success: boolean; url?: string; error?: string };
+      if (!upData.success || !upData.url) {
+        setError(upData.error ?? "Could not save the photo.");
+        setBusy(false);
+        return;
+      }
+      await punch(action, upData.url);
+    } catch {
+      setError("Network error while saving the photo.");
+      setBusy(false);
+    }
+  };
+
+  const punch = async (action: "in" | "out", photoUrl?: string) => {
     setError("");
     setBusy(true);
     try {
       const res = await fetch("/api/attendance/clock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action, photoUrl }),
       });
       const data = (await res.json()) as { success: boolean; error?: string };
       if (data.success) {
@@ -173,7 +200,7 @@ export function AttendanceClock() {
 
         {/* The one big action */}
         <button
-          onClick={() => punch(isIn ? "out" : "in")}
+          onClick={() => setCapturing(isIn ? "out" : "in")}
           disabled={busy}
           className="w-full text-sm tracking-[0.2em] uppercase font-bold py-5 transition-colors disabled:opacity-50"
           style={{
@@ -185,6 +212,14 @@ export function AttendanceClock() {
         >
           {busy ? "Please wait…" : isIn ? "Clock Out" : "Clock In"}
         </button>
+
+        {capturing && (
+          <SelfieCapture
+            action={capturing}
+            onCancel={() => setCapturing(null)}
+            onCapture={(dataUrl) => void punchWithPhoto(capturing, dataUrl)}
+          />
+        )}
 
         {/* Today's punches */}
         {status.today.length > 0 && (

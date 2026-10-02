@@ -28,7 +28,7 @@ function applyImages(html, urls) {
 }
 
 console.log("--- WhatsApp buttons ---");
-const waLinks = HTML.match(/https:\/\/wa\.me\/919886112547\?text=[^"]*/g) || [];
+const waLinks = HTML.match(/https:\/\/wa\.me\/918655242422\?text=[^"]*/g) || [];
 console.log("wa.me link count (want 2):", waLinks.length, waLinks.length === 2 ? "PASS" : "FAIL");
 waLinks.forEach((l, i) => {
   const text = decodeURIComponent(l.split("text=")[1] || "");
@@ -38,9 +38,9 @@ console.log("no leftover mailto      :", !HTML.includes("partnerships@example.co
 
 console.log("\n--- images configured ---");
 const withImgs = applyImages(HTML, {
-  "{{IMG_HERO}}": "https://cdn.example.com/hero.png",
-  "{{IMG_PLAYERS}}": "https://cdn.example.com/players.jpg",
-  "{{IMG_RUUD}}": "https://cdn.example.com/ruud.jpg",
+  "{{IMG_HERO}}": "https://www.a7entertainment.in/wtl/hero.jpg",
+  "{{IMG_PLAYERS}}": "https://www.a7entertainment.in/wtl/players.jpg",
+  "{{IMG_RUUD}}": undefined,
 });
 console.log("tokens substituted      :", !/\{\{IMG_/.test(withImgs) ? "PASS" : "FAIL");
 console.log("img tags present        :", (withImgs.match(/<img/g) || []).length);

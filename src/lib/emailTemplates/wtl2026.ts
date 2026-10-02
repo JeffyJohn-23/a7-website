@@ -72,7 +72,7 @@ export const WTL_2026_HTML = `<!DOCTYPE html>
       <table role="presentation" cellpadding="0" cellspacing="0">
         <tr>
           <td style="background:#F26B21;border-radius:30px;">
-            <a href="https://wa.me/919886112547?text=Hi%20A7%20Entertainment%2C%20I'd%20like%20the%20WTL%202026%20partnership%20deck." style="display:inline-block;padding:14px 30px;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:15px;color:#FFFFFF;">Request the 2026 partnership deck</a>
+            <a href="https://wa.me/918655242422?text=Hi%20A7%20Entertainment%2C%20I'd%20like%20the%20WTL%202026%20partnership%20deck." style="display:inline-block;padding:14px 30px;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:15px;color:#FFFFFF;">Request the 2026 partnership deck</a>
           </td>
         </tr>
       </table>
@@ -341,7 +341,7 @@ export const WTL_2026_HTML = `<!DOCTYPE html>
             <table role="presentation" cellpadding="0" cellspacing="0">
               <tr>
                 <td style="background:#F26B21;border-radius:30px;">
-                  <a href="https://wa.me/919886112547?text=Hi%20A7%20Entertainment%2C%20I'd%20like%20to%20book%20a%2020-minute%20WTL%202026%20partnership%20call." style="display:inline-block;padding:14px 30px;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:15px;color:#FFFFFF;">Book a partnership call</a>
+                  <a href="https://wa.me/918655242422?text=Hi%20A7%20Entertainment%2C%20I'd%20like%20to%20book%20a%2020-minute%20WTL%202026%20partnership%20call." style="display:inline-block;padding:14px 30px;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:15px;color:#FFFFFF;">Book a partnership call</a>
                 </td>
               </tr>
             </table>

@@ -15,10 +15,9 @@ const BROADCAST_RANGE = `${SHEET_NAME}!A2:B`;
 const COL_FULL_NAME = 0; // A
 const COL_EMAIL = 1; // B
 
-// Resend: batch endpoint accepts up to 100 messages per call; API limit is
-// 10 req/s. 100/batch with a small gap keeps us far under both.
-const BATCH_SIZE = 100;
-const BATCH_DELAY_MS = 300;
+// Sends go one-per-request (the batch endpoint cannot carry attachments), so
+// pace them under Resend's 10 req/s limit. 150ms ≈ 6.6/s with headroom.
+const SEND_DELAY_MS = 150;
 
 export type Recipient = { email: string; name: string };
 
@@ -120,48 +119,98 @@ export function buildBroadcastHtml(message: string, recipientName: string): stri
 </html>`;
 }
 
+// ─── Sender addresses ───────────────────────────────────────────────────────
+// Any address on a verified domain works without extra setup, but this is an
+// explicit allow-list: a typo or an unverified domain would fail at send time,
+// after the operator has already committed to a blast.
+export const SENDERS = [
+  { value: "noreply@a7entertainment.in", label: "A7 Entertainment (noreply@)", name: "A7 Entertainment" },
+  { value: "enquiry@a7entertainment.in", label: "A7 Enquiry (enquiry@)", name: "A7 Entertainment" },
+  { value: "careers@a7entertainment.in", label: "A7 Careers (careers@)", name: "A7 Entertainment" },
+  { value: "abhishekupadhye@a7entertainment.in", label: "Abhishek Upadhye", name: "Abhishek Upadhye" },
+] as const;
+
+export type SenderValue = (typeof SENDERS)[number]["value"];
+
+export function isAllowedSender(value: string): value is SenderValue {
+  return SENDERS.some((s) => s.value === value);
+}
+
+/**
+ * Resend requires a display name + address. The name comes from the allow-list
+ * entry, so a personal address shows that person's name rather than the
+ * company's.
+ */
+function fromHeader(sender: SenderValue): string {
+  const entry = SENDERS.find((s) => s.value === sender);
+  return `${entry?.name ?? "A7 Entertainment"} <${sender}>`;
+}
+
+export type BroadcastAttachment = {
+  filename: string;
+  /** Base64 (no data: prefix). */
+  content: string;
+};
+
 export type BroadcastResult = { sent: number; failed: number; total: number };
 
 /**
  * Send `message` to every recipient as an individual email (one To: per
- * message — recipients never see each other). Uses Resend's batch endpoint,
- * 100 per call, with a short delay between calls.
+ * message — recipients never see each other's address).
+ *
+ * Sends ONE AT A TIME rather than via resend.batch.send: the batch endpoint
+ * does not support attachments. That costs speed (one API call per recipient)
+ * but it is the only way attachments work, and it makes per-recipient failures
+ * visible instead of failing a whole chunk of 100.
  */
 export async function sendBroadcast(
   recipients: Recipient[],
   subject: string,
   message: string,
-  apiKey: string
+  apiKey: string,
+  options?: { sender?: SenderValue; attachments?: BroadcastAttachment[] }
 ): Promise<BroadcastResult> {
   const resend = new Resend(apiKey);
+  const sender: SenderValue = options?.sender && isAllowedSender(options.sender)
+    ? options.sender
+    : "noreply@a7entertainment.in";
+
+  // Resend accepts a Buffer or base64 string for attachment content.
+  const attachments = options?.attachments?.length
+    ? options.attachments.map((a) => ({
+        filename: a.filename,
+        content: Buffer.from(a.content, "base64"),
+      }))
+    : undefined;
+
   let sent = 0;
   let failed = 0;
 
-  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
-    const chunk = recipients.slice(i, i + BATCH_SIZE);
-    const payload = chunk.map((r) => ({
-      from: "A7 Entertainment <noreply@a7entertainment.in>",
-      to: [r.email], // individual — no shared To:/CC between applicants
-      reply_to: "enquiry@a7entertainment.in",
-      subject,
-      html: buildBroadcastHtml(message, r.name),
-    }));
-
+  for (let i = 0; i < recipients.length; i++) {
+    const r = recipients[i];
     try {
-      const { error } = await resend.batch.send(payload);
+      const { error } = await resend.emails.send({
+        from: fromHeader(sender),
+        to: [r.email],
+        reply_to: sender,
+        subject,
+        html: buildBroadcastHtml(message, r.name),
+        ...(attachments ? { attachments } : {}),
+      });
       if (error) {
-        console.error("[broadcast] batch failed:", error);
-        failed += chunk.length;
+        console.error(`[broadcast] send failed for ${r.email}:`, error);
+        failed++;
       } else {
-        sent += chunk.length;
+        sent++;
       }
     } catch (err) {
-      console.error("[broadcast] batch threw:", err);
-      failed += chunk.length;
+      console.error(`[broadcast] send threw for ${r.email}:`, err);
+      failed++;
     }
 
-    if (i + BATCH_SIZE < recipients.length) {
-      await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY_MS));
+    // Stay under Resend's 10 req/s limit.
+    if (i + 1 < recipients.length) {
+      await new Promise((resolve) => setTimeout(resolve, SEND_DELAY_MS));
     }
   }
 

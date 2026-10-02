@@ -74,14 +74,54 @@ function ComposePanel() {
   const [result, setResult] = useState<SendResult | null>(null);
   const [error, setError] = useState("");
 
+  // Sender + attachment
+  const [senders, setSenders] = useState<{ value: string; label: string }[]>([]);
+  const [sender, setSender] = useState("");
+  const [maxBytes, setMaxBytes] = useState(3_000_000);
+  const [file, setFile] = useState<{ filename: string; content: string; bytes: number } | null>(null);
+  const [fileError, setFileError] = useState("");
+
+  const pickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFileError("");
+    const f = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (!f) return;
+
+    if (f.size > maxBytes) {
+      setFileError(
+        `That file is ${(f.size / 1_000_000).toFixed(1)} MB. Limit is ${(maxBytes / 1_000_000).toFixed(0)} MB.`
+      );
+      return;
+    }
+
+    const bytes = new Uint8Array(await f.arrayBuffer());
+    // Chunked — String.fromCharCode(...) on a multi-MB array blows the stack.
+    let binary = "";
+    const CHUNK = 8192;
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+    }
+    setFile({ filename: f.name, content: btoa(binary), bytes: f.size });
+    setConfirming(false);
+  };
+
   const loadCount = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/broadcast");
       const data = (await res.json()) as {
-        success: boolean; count?: number; error?: string;
+        success: boolean;
+        count?: number;
+        senders?: { value: string; label: string }[];
+        maxAttachmentBytes?: number;
+        error?: string;
       };
       if (data.success && typeof data.count === "number") {
         setCount(data.count);
+        if (data.senders?.length) {
+          setSenders(data.senders);
+          setSender((cur) => cur || data.senders![0].value);
+        }
+        if (data.maxAttachmentBytes) setMaxBytes(data.maxAttachmentBytes);
       } else setCountError(data.error ?? "Could not load recipients.");
     } catch {
       setCountError("Could not load recipients.");
@@ -99,7 +139,15 @@ function ComposePanel() {
       const res = await fetch("/api/admin/broadcast", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject, message, confirm: "SEND" }),
+        body: JSON.stringify({
+          subject,
+          message,
+          confirm: "SEND",
+          sender: sender || undefined,
+          attachment: file
+            ? { filename: file.filename, content: file.content }
+            : undefined,
+        }),
       });
       const data = (await res.json()) as {
         success: boolean; sent?: number; failed?: number; total?: number; error?: string;
@@ -136,7 +184,14 @@ function ComposePanel() {
           </p>
         )}
         <button
-          onClick={() => { setResult(null); setSubject(""); setMessage(""); void loadCount(); }}
+          onClick={() => {
+            setResult(null);
+            setSubject("");
+            setMessage("");
+            setFile(null); // don't let a stale attachment ride along on the next blast
+            setFileError("");
+            void loadCount();
+          }}
           className="text-[#FF0000] text-sm tracking-widest uppercase underline"
           data-cursor-hover
         >
@@ -165,6 +220,64 @@ function ComposePanel() {
             ? countError
             : "Read from the broadcast sheet (Name + Email). Each person receives their own email — recipients never see one another's addresses. The sheet is never modified."}
         </p>
+      </div>
+
+      {/* Sender */}
+      <div
+        className="flex flex-col justify-end border-b border-[#333] pb-1 focus-within:border-[#FF0000] transition-colors"
+        style={{ marginBottom: "var(--space-md)" }}
+      >
+        <span className="block text-[10px] text-[#555] tracking-widest uppercase" style={{ marginBottom: "var(--space-xs)" }}>
+          Send From
+        </span>
+        <select
+          value={sender}
+          onChange={(e) => { setSender(e.target.value); setConfirming(false); }}
+          className="bg-[#000000] [color-scheme:dark] text-white text-sm py-1 outline-none"
+          style={{ border: "none" }}
+          data-cursor-hover
+        >
+          {senders.length === 0 && <option value="">Loading…</option>}
+          {senders.map((s) => (
+            <option key={s.value} value={s.value}>{s.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Attachment */}
+      <div style={{ marginBottom: "var(--space-md)" }}>
+        <span className="block text-[10px] text-[#555] tracking-widest uppercase" style={{ marginBottom: "var(--space-xs)" }}>
+          Attachment (optional)
+        </span>
+        {file ? (
+          <div className="flex items-center justify-between gap-4 border border-[#333]" style={{ padding: "0.6rem 0.9rem" }}>
+            <span className="text-white text-sm truncate">
+              {file.filename}{" "}
+              <span className="text-[#555] text-xs">({(file.bytes / 1_000_000).toFixed(2)} MB)</span>
+            </span>
+            <button
+              onClick={() => { setFile(null); setConfirming(false); }}
+              className="text-[10px] text-[#555] hover:text-[#FF0000] transition-colors tracking-[0.2em] uppercase shrink-0"
+              data-cursor-hover
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <label
+            className="flex items-center justify-center border border-[#333] hover:border-[#FF0000] transition-colors cursor-pointer"
+            style={{ padding: "0.75rem" }}
+            data-cursor-hover
+          >
+            <span className="text-[#666] text-xs tracking-widest uppercase">
+              Choose a file — max {(maxBytes / 1_000_000).toFixed(0)} MB
+            </span>
+            <input type="file" onChange={pickFile} className="hidden" />
+          </label>
+        )}
+        {fileError && (
+          <p className="text-[#FF0000] text-sm" style={{ marginTop: "var(--space-xs)" }}>{fileError}</p>
+        )}
       </div>
 
       {/* Subject */}
@@ -206,8 +319,16 @@ function ComposePanel() {
         {confirming ? (
           <div className="border border-[#FF0000]" style={{ padding: "1rem 1.25rem" }}>
             <p className="text-white text-sm leading-relaxed" style={{ marginBottom: "var(--space-md)" }}>
-              Send this email to <span className="font-bold">{count}</span> recipients?
+              Send this email to <span className="font-bold">{count}</span> recipients
+              from <span className="font-bold">{sender}</span>
+              {file && <> with <span className="font-bold">{file.filename}</span> attached</>}?
               This cannot be undone.
+              {(count ?? 0) > 20 && (
+                <span className="block text-[#999] text-xs" style={{ marginTop: "0.5rem" }}>
+                  Sending one email at a time — this takes roughly{" "}
+                  {Math.ceil(((count ?? 0) * 150) / 1000)}s. Keep this page open.
+                </span>
+              )}
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <button

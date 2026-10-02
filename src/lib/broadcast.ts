@@ -1,5 +1,6 @@
 import { google } from "googleapis";
 import { Resend } from "resend";
+import { renderTemplate, type TemplateId } from "@/lib/emailTemplates";
 
 // ─── Applicant broadcast ────────────────────────────────────────────────────
 // Reads the curated broadcast list (GOOGLE_SHEET_ID_BROADCAST) and emails each
@@ -168,7 +169,11 @@ export async function sendBroadcast(
   subject: string,
   message: string,
   apiKey: string,
-  options?: { sender?: SenderValue; attachments?: BroadcastAttachment[] }
+  options?: {
+    sender?: SenderValue;
+    attachments?: BroadcastAttachment[];
+    template?: TemplateId;
+  }
 ): Promise<BroadcastResult> {
   const resend = new Resend(apiKey);
   const sender: SenderValue = options?.sender && isAllowedSender(options.sender)
@@ -194,7 +199,11 @@ export async function sendBroadcast(
         to: [r.email],
         reply_to: sender,
         subject,
-        html: buildBroadcastHtml(message, r.name),
+        html: renderTemplate(options?.template ?? "default", {
+          message,
+          recipientName: r.name,
+          buildDefault: buildBroadcastHtml,
+        }),
         ...(attachments ? { attachments } : {}),
       });
       if (error) {

@@ -74,6 +74,21 @@ function ComposePanel() {
   const [result, setResult] = useState<SendResult | null>(null);
   const [error, setError] = useState("");
 
+  // Template
+  type TemplateMeta = {
+    id: string;
+    label: string;
+    usesMessage: boolean;
+    defaultSubject?: string;
+    note?: string;
+  };
+  const [templates, setTemplates] = useState<TemplateMeta[]>([]);
+  const [template, setTemplate] = useState("default");
+  const [missingImages, setMissingImages] = useState<string[]>([]);
+
+  const activeTemplate = templates.find((t) => t.id === template);
+  const needsMessage = activeTemplate?.usesMessage ?? true;
+
   // Sender + attachment
   const [senders, setSenders] = useState<{ value: string; label: string }[]>([]);
   const [sender, setSender] = useState("");
@@ -112,6 +127,8 @@ function ComposePanel() {
         success: boolean;
         count?: number;
         senders?: { value: string; label: string }[];
+        templates?: TemplateMeta[];
+        missingImages?: string[];
         maxAttachmentBytes?: number;
         error?: string;
       };
@@ -121,6 +138,8 @@ function ComposePanel() {
           setSenders(data.senders);
           setSender((cur) => cur || data.senders![0].value);
         }
+        if (data.templates?.length) setTemplates(data.templates);
+        setMissingImages(data.missingImages ?? []);
         if (data.maxAttachmentBytes) setMaxBytes(data.maxAttachmentBytes);
       } else setCountError(data.error ?? "Could not load recipients.");
     } catch {
@@ -144,6 +163,7 @@ function ComposePanel() {
           message,
           confirm: "SEND",
           sender: sender || undefined,
+          template,
           attachment: file
             ? { filename: file.filename, content: file.content }
             : undefined,
@@ -201,7 +221,11 @@ function ComposePanel() {
     );
   }
 
-  const ready = subject.trim().length > 0 && message.trim().length > 0 && (count ?? 0) > 0;
+  // Designed templates supply their own body, so only the subject is required.
+  const ready =
+    subject.trim().length > 0 &&
+    (!needsMessage || message.trim().length > 0) &&
+    (count ?? 0) > 0;
 
   return (
     <div className="max-w-2xl">
@@ -221,6 +245,56 @@ function ComposePanel() {
             : "Read from the broadcast sheet (Name + Email). Each person receives their own email — recipients never see one another's addresses. The sheet is never modified."}
         </p>
       </div>
+
+      {/* Template */}
+      <div
+        className="flex flex-col justify-end border-b border-[#333] pb-1 focus-within:border-[#FF0000] transition-colors"
+        style={{ marginBottom: "var(--space-md)" }}
+      >
+        <span className="block text-[10px] text-[#555] tracking-widest uppercase" style={{ marginBottom: "var(--space-xs)" }}>
+          Template
+        </span>
+        <select
+          value={template}
+          onChange={(e) => {
+            const id = e.target.value;
+            setTemplate(id);
+            setConfirming(false);
+            const t = templates.find((x) => x.id === id);
+            if (t?.defaultSubject && !subject.trim()) setSubject(t.defaultSubject);
+          }}
+          className="bg-[#000000] [color-scheme:dark] text-white text-sm py-1 outline-none"
+          style={{ border: "none" }}
+          data-cursor-hover
+        >
+          {templates.length === 0 && <option value="default">Loading…</option>}
+          {templates.map((t) => (
+            <option key={t.id} value={t.id}>{t.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {activeTemplate?.note && (
+        <p className="text-[11px] text-[#666] leading-relaxed" style={{ marginTop: "-0.5rem", marginBottom: "var(--space-md)" }}>
+          {activeTemplate.note}
+        </p>
+      )}
+
+      {/* Missing image warning — only matters for designed templates */}
+      {!needsMessage && missingImages.length > 0 && (
+        <div
+          className="border border-[#FF0000]"
+          style={{ padding: "0.85rem 1.1rem", marginBottom: "var(--space-md)", background: "rgba(255,0,0,0.08)" }}
+        >
+          <p className="text-[#FF0000] text-[10px] font-bold tracking-[0.3em] uppercase">
+            Images Not Configured
+          </p>
+          <p className="text-[11px] text-[#999] leading-relaxed" style={{ marginTop: "0.4rem" }}>
+            {missingImages.join(", ")} — these images will be omitted from the email.
+            Set the matching WTL_IMG_* environment variables to include them.
+          </p>
+        </div>
+      )}
 
       {/* Sender */}
       <div
@@ -296,8 +370,12 @@ function ComposePanel() {
         />
       </div>
 
-      {/* Message */}
-      <div className="flex flex-col border-b border-[#333] pb-1 focus-within:border-[#FF0000] transition-colors">
+      {/* Message — hidden for templates that supply their own body, so nobody
+          types a message that would silently be discarded. */}
+      <div
+        className="flex flex-col border-b border-[#333] pb-1 focus-within:border-[#FF0000] transition-colors"
+        style={{ display: needsMessage ? undefined : "none" }}
+      >
         <span className="block text-[10px] text-[#555] tracking-widest uppercase" style={{ marginBottom: "var(--space-xs)" }}>
           Message <span className="text-[#FF0000]">*</span>
         </span>

@@ -8,6 +8,13 @@ import {
   type BroadcastAttachment,
   type SenderValue,
 } from "@/lib/broadcast";
+import {
+  TEMPLATES,
+  getTemplate,
+  isTemplateId,
+  missingWtlImages,
+  type TemplateId,
+} from "@/lib/emailTemplates";
 
 export const runtime = "nodejs";
 // Sends are now one-per-recipient (attachments rule out the batch endpoint),
@@ -30,6 +37,9 @@ export async function GET() {
       success: true,
       count: recipients.length,
       senders: SENDERS,
+      templates: TEMPLATES,
+      // Surfaced so the operator knows images will be missing before sending.
+      missingImages: missingWtlImages(),
       maxAttachmentBytes: MAX_ATTACHMENT_BYTES,
     });
   } catch (err) {
@@ -59,15 +69,32 @@ export async function POST(request: Request) {
     message?: string;
     confirm?: string;
     sender?: string;
+    template?: string;
     attachment?: { filename?: string; content?: string };
   };
 
   const subject = body.subject?.trim();
-  const message = body.message?.trim();
+  const message = body.message?.trim() ?? "";
 
-  if (!subject || !message) {
+  // Template decides whether a typed message is needed at all.
+  const templateId = body.template ?? "default";
+  if (!isTemplateId(templateId)) {
     return NextResponse.json(
-      { success: false, error: "Subject and message are both required." },
+      { success: false, error: "Unknown template." },
+      { status: 400 }
+    );
+  }
+  const template = getTemplate(templateId)!;
+
+  if (!subject) {
+    return NextResponse.json(
+      { success: false, error: "Subject is required." },
+      { status: 400 }
+    );
+  }
+  if (template.usesMessage && !message) {
+    return NextResponse.json(
+      { success: false, error: "Message is required for this template." },
       { status: 400 }
     );
   }
@@ -122,6 +149,7 @@ export async function POST(request: Request) {
     const result = await sendBroadcast(recipients, subject, message, apiKey, {
       sender: sender as SenderValue | undefined,
       attachments,
+      template: templateId as TemplateId,
     });
     return NextResponse.json({ success: true, ...result });
   } catch (err) {

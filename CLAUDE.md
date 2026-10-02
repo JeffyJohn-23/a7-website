@@ -32,6 +32,9 @@ AUTH_SECRET=<random 32-byte hex; signs employee attendance session cookies — s
 BLOB_READ_WRITE_TOKEN=<Vercel Blob token — injected when a Blob store is connected; stores attendance selfies>
 CRON_SECRET=<random hex; authorises the nightly selfie-retention cron — server only>
 GOOGLE_SHEET_ID_BROADCAST=<sheet id for the /admin/broadcast recipient list — columns A=Full Name, B=Email. Read-only; never written to>
+WTL_IMG_HERO=<public absolute URL for the WTL 2026 emailer hero image>
+WTL_IMG_PLAYERS=<public absolute URL for the WTL 2026 player line-up image>
+WTL_IMG_RUUD=<public absolute URL for the WTL 2026 Casper Ruud image>
 RAZORPAY_KEY_ID=<rzp_test_ or rzp_live_ key id>
 RAZORPAY_KEY_SECRET=<razorpay key secret — server only>
 RAZORPAY_WEBHOOK_SECRET=<razorpay webhook signing secret — server only>

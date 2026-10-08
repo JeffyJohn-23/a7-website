@@ -21,8 +21,33 @@ export const WTL_2026_HTML = `<!DOCTYPE html>
   @media only screen and (max-width:620px) {
     .wrap { width:100% !important; }
     .px { padding-left:22px !important; padding-right:22px !important; }
-    .stack { display:block !important; width:100% !important; }
-    .player { display:inline-block !important; width:50% !important; }
+
+    /* Cards stack full width. table-layout:fixed stops long values from
+       stretching a cell wider than the screen. */
+    .stack {
+      display:block !important;
+      width:100% !important;
+      max-width:100% !important;
+      padding-left:0 !important;
+      padding-right:0 !important;
+      padding-bottom:12px !important;
+      box-sizing:border-box !important;
+    }
+
+    /* Two players per row. The <tr> is forced to behave as a block so its
+       cells can wrap; .player-row centres the resulting group. */
+    .player-grid, .player-row { display:block !important; width:100% !important; }
+    .player-row { text-align:center !important; font-size:0 !important; }
+    .player {
+      display:inline-block !important;
+      width:50% !important;
+      max-width:50% !important;
+      box-sizing:border-box !important;
+      padding:0 4px 22px !important;
+      vertical-align:top !important;
+      text-align:center !important;
+    }
+
     .hero-h { font-size:34px !important; line-height:40px !important; }
     .big { font-size:30px !important; }
   }
@@ -232,46 +257,46 @@ export const WTL_2026_HTML = `<!DOCTYPE html>
         <img src="{{IMG_RUUD}}" width="96" height="96" alt="Casper Ruud" style="border-radius:48px;display:block;margin:0 auto;">
         Use square crops, at least 192x192px for retina screens.
       -->
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="player-grid">
+        <tr class="player-row">
+          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;font-size:14px;">
             <table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" width="96" height="96" style="width:96px;height:96px;border-radius:48px;background:#1B0B4A;font-family:'Poppins',Arial,sans-serif;font-weight:800;font-size:28px;color:#F26B21;">CR</td></tr></table>
             <p style="margin:10px 0 0;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:14px;color:#1B0B4A;">Casper Ruud</p>
             <p style="margin:2px 0 0;font-family:'Poppins',Arial,sans-serif;font-size:12px;color:#5A5378;">Norway</p>
           </td>
-          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;">
+          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;font-size:14px;">
             <table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" width="96" height="96" style="width:96px;height:96px;border-radius:48px;background:#1B0B4A;font-family:'Poppins',Arial,sans-serif;font-weight:800;font-size:28px;color:#F26B21;">NK</td></tr></table>
             <p style="margin:10px 0 0;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:14px;color:#1B0B4A;">Nick Kyrgios</p>
             <p style="margin:2px 0 0;font-family:'Poppins',Arial,sans-serif;font-size:12px;color:#5A5378;">Australia</p>
           </td>
-          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;">
+          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;font-size:14px;">
             <table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" width="96" height="96" style="width:96px;height:96px;border-radius:48px;background:#1B0B4A;font-family:'Poppins',Arial,sans-serif;font-weight:800;font-size:28px;color:#F26B21;">AB</td></tr></table>
             <p style="margin:10px 0 0;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:14px;color:#1B0B4A;">Alexander Bublik</p>
             <p style="margin:2px 0 0;font-family:'Poppins',Arial,sans-serif;font-size:12px;color:#5A5378;">Kazakhstan</p>
           </td>
-          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;">
+          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;font-size:14px;">
             <table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" width="96" height="96" style="width:96px;height:96px;border-radius:48px;background:#1B0B4A;font-family:'Poppins',Arial,sans-serif;font-weight:800;font-size:28px;color:#F26B21;">FC</td></tr></table>
             <p style="margin:10px 0 0;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:14px;color:#1B0B4A;">Flavio Cobolli</p>
             <p style="margin:2px 0 0;font-family:'Poppins',Arial,sans-serif;font-size:12px;color:#5A5378;">Italy</p>
           </td>
         </tr>
         <tr>
-          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;">
+          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;font-size:14px;">
             <table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" width="96" height="96" style="width:96px;height:96px;border-radius:48px;background:#1B0B4A;font-family:'Poppins',Arial,sans-serif;font-weight:800;font-size:28px;color:#F26B21;">ES</td></tr></table>
             <p style="margin:10px 0 0;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:14px;color:#1B0B4A;">Elina Svitolina</p>
             <p style="margin:2px 0 0;font-family:'Poppins',Arial,sans-serif;font-size:12px;color:#5A5378;">Ukraine</p>
           </td>
-          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;">
+          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;font-size:14px;">
             <table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" width="96" height="96" style="width:96px;height:96px;border-radius:48px;background:#1B0B4A;font-family:'Poppins',Arial,sans-serif;font-weight:800;font-size:28px;color:#F26B21;">BB</td></tr></table>
             <p style="margin:10px 0 0;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:14px;color:#1B0B4A;">Belinda Bencic</p>
             <p style="margin:2px 0 0;font-family:'Poppins',Arial,sans-serif;font-size:12px;color:#5A5378;">Switzerland</p>
           </td>
-          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;">
+          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;font-size:14px;">
             <table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" width="96" height="96" style="width:96px;height:96px;border-radius:48px;background:#1B0B4A;font-family:'Poppins',Arial,sans-serif;font-weight:800;font-size:28px;color:#F26B21;">MK</td></tr></table>
             <p style="margin:10px 0 0;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:14px;color:#1B0B4A;">Marta Kostyuk</p>
             <p style="margin:2px 0 0;font-family:'Poppins',Arial,sans-serif;font-size:12px;color:#5A5378;">Ukraine</p>
           </td>
-          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;">
+          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;font-size:14px;">
             <table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" width="96" height="96" style="width:96px;height:96px;border-radius:48px;background:#1B0B4A;font-family:'Poppins',Arial,sans-serif;font-weight:800;font-size:28px;color:#F26B21;">AK</td></tr></table>
             <p style="margin:10px 0 0;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:14px;color:#1B0B4A;">Anna Kalinskaya</p>
             <p style="margin:2px 0 0;font-family:'Poppins',Arial,sans-serif;font-size:12px;color:#5A5378;">Russia*</p>
@@ -280,24 +305,24 @@ export const WTL_2026_HTML = `<!DOCTYPE html>
       </table>
 
       <p style="margin:6px 0 12px;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:15px;color:#F26B21;">India's finest</p>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="player-grid">
+        <tr class="player-row">
+          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;font-size:14px;">
             <table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" width="96" height="96" style="width:96px;height:96px;border-radius:48px;background:#F26B21;font-family:'Poppins',Arial,sans-serif;font-weight:800;font-size:28px;color:#FFFFFF;">SN</td></tr></table>
             <p style="margin:10px 0 0;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:14px;color:#1B0B4A;">Sumit Nagal</p>
             <p style="margin:2px 0 0;font-family:'Poppins',Arial,sans-serif;font-size:12px;color:#5A5378;">India's No. 1 man</p>
           </td>
-          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;">
+          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;font-size:14px;">
             <table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" width="96" height="96" style="width:96px;height:96px;border-radius:48px;background:#F26B21;font-family:'Poppins',Arial,sans-serif;font-weight:800;font-size:28px;color:#FFFFFF;">DS</td></tr></table>
             <p style="margin:10px 0 0;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:14px;color:#1B0B4A;">Dhakshineswar Suresh</p>
             <p style="margin:2px 0 0;font-family:'Poppins',Arial,sans-serif;font-size:12px;color:#5A5378;">Beat Medvedev at WTL 2025</p>
           </td>
-          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;">
+          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;font-size:14px;">
             <table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" width="96" height="96" style="width:96px;height:96px;border-radius:48px;background:#F26B21;font-family:'Poppins',Arial,sans-serif;font-weight:800;font-size:28px;color:#FFFFFF;">SB</td></tr></table>
             <p style="margin:10px 0 0;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:14px;color:#1B0B4A;">Shrivalli Bhamidipaty</p>
             <p style="margin:2px 0 0;font-family:'Poppins',Arial,sans-serif;font-size:12px;color:#5A5378;">Leading women's singles</p>
           </td>
-          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;">
+          <td class="player" width="25%" align="center" valign="top" style="padding:0 4px 22px;font-size:14px;">
             <table role="presentation" cellpadding="0" cellspacing="0"><tr><td align="center" width="96" height="96" style="width:96px;height:96px;border-radius:48px;background:#F26B21;font-family:'Poppins',Arial,sans-serif;font-weight:800;font-size:28px;color:#FFFFFF;">MD</td></tr></table>
             <p style="margin:10px 0 0;font-family:'Poppins',Arial,sans-serif;font-weight:600;font-size:14px;color:#1B0B4A;">Manas Dhamne</p>
             <p style="margin:2px 0 0;font-family:'Poppins',Arial,sans-serif;font-size:12px;color:#5A5378;">Rising Indian talent</p>

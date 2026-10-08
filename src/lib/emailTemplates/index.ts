@@ -1,11 +1,12 @@
 import { WTL_2026_HTML } from "./wtl2026";
+import { A7_INTRO_HTML } from "./a7-intro";
 
 // ─── Broadcast email templates ──────────────────────────────────────────────
 // "default" wraps the operator's typed message in the A7 shell (existing
 // behaviour). Designed templates like WTL ship their own full HTML and ignore
 // the message box — only the subject stays editable.
 
-export type TemplateId = "default" | "wtl2026";
+export type TemplateId = "default" | "wtl2026" | "a7intro";
 
 export type TemplateMeta = {
   id: TemplateId;
@@ -32,6 +33,14 @@ export const TEMPLATES: TemplateMeta[] = [
     defaultSubject: "The Greatest Show on Court is back for 2026",
     note:
       "Pre-designed WTL 2026 emailer. The message box is ignored. Both buttons open WhatsApp to +91 98861 12547.",
+  },
+  {
+    id: "a7intro",
+    label: "A7 Entertainment — company intro",
+    usesMessage: false,
+    defaultSubject: "A7 Entertainment — Innovate. Create. Inspire.",
+    note:
+      "Pre-designed A7 company-intro emailer (services, projects, contact). The message box is ignored.",
   },
 ];
 
@@ -103,5 +112,6 @@ export function renderTemplate(
     // don't see a dead link.
     return applyImages(WTL_2026_HTML).split("[UNSUBSCRIBE_URL]").join("#");
   }
+  if (id === "a7intro") return A7_INTRO_HTML;
   return opts.buildDefault(opts.message, opts.recipientName);
 }

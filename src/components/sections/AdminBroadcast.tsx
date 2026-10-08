@@ -281,7 +281,7 @@ function ComposePanel() {
       )}
 
       {/* Missing image warning — only matters for designed templates */}
-      {!needsMessage && missingImages.length > 0 && (
+      {template === "wtl2026" && missingImages.length > 0 && (
         <div
           className="border border-[#FF0000]"
           style={{ padding: "0.85rem 1.1rem", marginBottom: "var(--space-md)", background: "rgba(255,0,0,0.08)" }}

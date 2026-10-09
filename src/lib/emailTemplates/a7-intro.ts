@@ -20,7 +20,7 @@ export const A7_INTRO_HTML = `<!DOCTYPE html>
   .display{font-family:'Bebas Neue','Oswald',Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;}
   .body{font-family:'Barlow','Helvetica Neue',Arial,sans-serif;}
 
-  /* Instagram tiles: static grid, 3 per row on desktop, 2 on tablets/phones. */
+  /* Instagram tiles: static grid, always 2 per row (table). */
   .ig-tile a:hover table{border-color:#ED3638 !important;}
 
   a.chip:hover{border-color:#ED3638 !important;}
@@ -79,7 +79,6 @@ export const A7_INTRO_HTML = `<!DOCTYPE html>
     .hero-sub{padding-right:0 !important;}
     .logo-img{width:160px !important;}
     .igpad{padding-left:18px !important;padding-right:18px !important;}
-    .ig-tile{width:50% !important;}
     .pillar{padding:24px 18px 18px 18px !important;}
     .pillar-name{font-size:40px !important;line-height:38px !important;}
     .services-head{font-size:48px !important;line-height:44px !important;}
@@ -239,50 +238,63 @@ export const A7_INTRO_HTML = `<!DOCTYPE html>
   </td></tr>
 
   <tr><td class="igpad" style="padding:16px 42px 0 42px;">
-    <div style="font-size:0;line-height:0;text-align:left;">
-        <div class="ig-tile" style="display:inline-block;width:33.333%;vertical-align:top;font-size:16px;">
-          <div style="padding:6px;"><a href="https://www.instagram.com/a7entertainment/" style="display:block;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ED3638;border:2px solid #ED3638;"><tr><td valign="bottom" style="padding:12px;height:166px;">
-              <p class="display" style="margin:0;font-family:'Bebas Neue','Oswald',Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;font-size:22px;line-height:21px;color:#ffffff;">Ben Böhmer live</p>
-              <p class="body" style="margin:6px 0 0 0;font-family:'Barlow',Arial,sans-serif;font-size:11px;color:#ffffff;">Concert</p>
-            </td></tr></table></a></div>
-        </div>
-        <div class="ig-tile" style="display:inline-block;width:33.333%;vertical-align:top;font-size:16px;">
-          <div style="padding:6px;"><a href="https://www.instagram.com/a7entertainment/" style="display:block;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1A1A1A;border:2px solid #333333;"><tr><td valign="bottom" style="padding:12px;height:166px;">
-              <p class="display" style="margin:0;font-family:'Bebas Neue','Oswald',Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;font-size:22px;line-height:21px;color:#ffffff;">World Tennis League</p>
-              <p class="body" style="margin:6px 0 0 0;font-family:'Barlow',Arial,sans-serif;font-size:11px;color:#ED3638;">Celebrity mgmt</p>
-            </td></tr></table></a></div>
-        </div>
-        <div class="ig-tile" style="display:inline-block;width:33.333%;vertical-align:top;font-size:16px;">
-          <div style="padding:6px;"><a href="https://www.instagram.com/a7entertainment/" style="display:block;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #ffffff;"><tr><td valign="bottom" style="padding:12px;height:166px;">
-              <p class="display" style="margin:0;font-family:'Bebas Neue','Oswald',Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;font-size:22px;line-height:21px;color:#000000;">Ramee Icon launch</p>
-              <p class="body" style="margin:6px 0 0 0;font-family:'Barlow',Arial,sans-serif;font-size:11px;color:#ED3638;">Brand launch</p>
-            </td></tr></table></a></div>
-        </div>
-        <div class="ig-tile" style="display:inline-block;width:33.333%;vertical-align:top;font-size:16px;">
-          <div style="padding:6px;"><a href="https://www.instagram.com/a7entertainment/" style="display:block;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1A1A1A;border:2px solid #333333;"><tr><td valign="bottom" style="padding:12px;height:166px;">
-              <p class="display" style="margin:0;font-family:'Bebas Neue','Oswald',Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;font-size:22px;line-height:21px;color:#ffffff;">Vesparo &amp; Pulse</p>
-              <p class="body" style="margin:6px 0 0 0;font-family:'Barlow',Arial,sans-serif;font-size:11px;color:#ED3638;">Venue opening</p>
-            </td></tr></table></a></div>
-        </div>
-        <div class="ig-tile" style="display:inline-block;width:33.333%;vertical-align:top;font-size:16px;">
-          <div style="padding:6px;"><a href="https://www.instagram.com/a7entertainment/" style="display:block;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ED3638;border:2px solid #ED3638;"><tr><td valign="bottom" style="padding:12px;height:166px;">
-              <p class="display" style="margin:0;font-family:'Bebas Neue','Oswald',Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;font-size:22px;line-height:21px;color:#ffffff;">Guru Randhawa</p>
-              <p class="body" style="margin:6px 0 0 0;font-family:'Barlow',Arial,sans-serif;font-size:11px;color:#ffffff;">Concert</p>
-            </td></tr></table></a></div>
-        </div>
-        <div class="ig-tile" style="display:inline-block;width:33.333%;vertical-align:top;font-size:16px;">
-          <div style="padding:6px;"><a href="https://www.instagram.com/a7entertainment/" style="display:block;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1A1A1A;border:2px solid #333333;"><tr><td valign="bottom" style="padding:12px;height:166px;">
-              <p class="display" style="margin:0;font-family:'Bebas Neue','Oswald',Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;font-size:22px;line-height:21px;color:#ffffff;">A7&rsquo; Studio</p>
-              <p class="body" style="margin:6px 0 0 0;font-family:'Barlow',Arial,sans-serif;font-size:11px;color:#ED3638;">Shoots</p>
-            </td></tr></table></a></div>
-        </div>
-    </div>
+    <!-- Always 2 tiles per row: a real table needs no media queries or inline-block, so Gmail keeps it intact. -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
+    <tr>
+      <td class="ig-tile" width="50%" valign="top" style="width:50%;padding:6px;">
+        <a href="https://www.instagram.com/a7entertainment/" style="display:block;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ED3638;border:2px solid #ED3638;"><tr><td valign="bottom" style="padding:12px;height:150px;">
+            <p class="display" style="margin:0;font-family:'Bebas Neue','Oswald',Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;font-size:22px;line-height:21px;color:#ffffff;">Ben Böhmer live</p>
+            <p class="body" style="margin:6px 0 0 0;font-family:'Barlow',Arial,sans-serif;font-size:11px;color:#ffffff;">Concert</p>
+          </td></tr></table>
+        </a>
+      </td>
+      <td class="ig-tile" width="50%" valign="top" style="width:50%;padding:6px;">
+        <a href="https://www.instagram.com/a7entertainment/" style="display:block;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1A1A1A;border:2px solid #333333;"><tr><td valign="bottom" style="padding:12px;height:150px;">
+            <p class="display" style="margin:0;font-family:'Bebas Neue','Oswald',Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;font-size:22px;line-height:21px;color:#ffffff;">World Tennis League</p>
+            <p class="body" style="margin:6px 0 0 0;font-family:'Barlow',Arial,sans-serif;font-size:11px;color:#ED3638;">Celebrity mgmt</p>
+          </td></tr></table>
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td class="ig-tile" width="50%" valign="top" style="width:50%;padding:6px;">
+        <a href="https://www.instagram.com/a7entertainment/" style="display:block;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid #ffffff;"><tr><td valign="bottom" style="padding:12px;height:150px;">
+            <p class="display" style="margin:0;font-family:'Bebas Neue','Oswald',Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;font-size:22px;line-height:21px;color:#000000;">Ramee Icon launch</p>
+            <p class="body" style="margin:6px 0 0 0;font-family:'Barlow',Arial,sans-serif;font-size:11px;color:#ED3638;">Brand launch</p>
+          </td></tr></table>
+        </a>
+      </td>
+      <td class="ig-tile" width="50%" valign="top" style="width:50%;padding:6px;">
+        <a href="https://www.instagram.com/a7entertainment/" style="display:block;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1A1A1A;border:2px solid #333333;"><tr><td valign="bottom" style="padding:12px;height:150px;">
+            <p class="display" style="margin:0;font-family:'Bebas Neue','Oswald',Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;font-size:22px;line-height:21px;color:#ffffff;">Vesparo &amp; Pulse</p>
+            <p class="body" style="margin:6px 0 0 0;font-family:'Barlow',Arial,sans-serif;font-size:11px;color:#ED3638;">Venue opening</p>
+          </td></tr></table>
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td class="ig-tile" width="50%" valign="top" style="width:50%;padding:6px;">
+        <a href="https://www.instagram.com/a7entertainment/" style="display:block;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ED3638;border:2px solid #ED3638;"><tr><td valign="bottom" style="padding:12px;height:150px;">
+            <p class="display" style="margin:0;font-family:'Bebas Neue','Oswald',Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;font-size:22px;line-height:21px;color:#ffffff;">Guru Randhawa</p>
+            <p class="body" style="margin:6px 0 0 0;font-family:'Barlow',Arial,sans-serif;font-size:11px;color:#ffffff;">Concert</p>
+          </td></tr></table>
+        </a>
+      </td>
+      <td class="ig-tile" width="50%" valign="top" style="width:50%;padding:6px;">
+        <a href="https://www.instagram.com/a7entertainment/" style="display:block;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1A1A1A;border:2px solid #333333;"><tr><td valign="bottom" style="padding:12px;height:150px;">
+            <p class="display" style="margin:0;font-family:'Bebas Neue','Oswald',Impact,Haettenschweiler,'Arial Narrow Bold',sans-serif;font-size:22px;line-height:21px;color:#ffffff;">A7&rsquo; Studio</p>
+            <p class="body" style="margin:6px 0 0 0;font-family:'Barlow',Arial,sans-serif;font-size:11px;color:#ED3638;">Shoots</p>
+          </td></tr></table>
+        </a>
+      </td>
+    </tr>
+    </table>
   </td></tr>
 
   <!-- Instagram follow bar -->

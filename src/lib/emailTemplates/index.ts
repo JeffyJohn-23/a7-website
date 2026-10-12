@@ -63,14 +63,11 @@ export function isTemplateId(id: string): id is TemplateId {
 // production URLs and need no configuration. The env vars remain as an override
 // (e.g. to point at a CDN later) without a code change.
 //
-// IMG_RUUD has no default: that image was never supplied, so the <img> is
-// removed at render time rather than showing a broken icon to recipients.
 const SITE_ORIGIN = "https://www.a7entertainment.in";
 
 const IMAGE_TOKENS: Record<string, string | undefined> = {
   "{{IMG_HERO}}": process.env.WTL_IMG_HERO || `${SITE_ORIGIN}/wtl/hero.jpg`,
   "{{IMG_PLAYERS}}": process.env.WTL_IMG_PLAYERS || `${SITE_ORIGIN}/wtl/players.jpg`,
-  "{{IMG_RUUD}}": process.env.WTL_IMG_RUUD,
 };
 
 /** True when every WTL image URL is configured. */

@@ -20,6 +20,9 @@ type Shift = {
   clock_out_at: string | null;
   work_date: string;
   note: string | null;
+  // Booleans only — raw blob URLs are never sent to the browser.
+  has_in_photo?: boolean;
+  has_out_photo?: boolean;
 };
 
 async function requireAdmin() {
@@ -50,7 +53,9 @@ export async function GET(request: Request) {
   }
 
   const shifts = (await sql`
-    SELECT a.id, a.employee_id, a.clock_in_at, a.clock_out_at, a.work_date, a.note
+    SELECT a.id, a.employee_id, a.clock_in_at, a.clock_out_at, a.work_date, a.note,
+           (a.clock_in_photo_url IS NOT NULL)  AS has_in_photo,
+           (a.clock_out_photo_url IS NOT NULL) AS has_out_photo
     FROM attendance a
     WHERE a.employee_id = ${employeeId}
     ORDER BY a.clock_in_at DESC

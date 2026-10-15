@@ -21,6 +21,8 @@ type Shift = {
   clock_out_at: string | null;
   work_date: string;
   note: string | null;
+  has_in_photo?: boolean;
+  has_out_photo?: boolean;
 };
 
 /** `datetime-local` needs "YYYY-MM-DDTHH:mm" in IST, not a UTC ISO string. */
@@ -82,6 +84,9 @@ export function AttendanceAdmin() {
   const [fixFor, setFixFor] = useState<EmployeeRow | null>(null);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [editing, setEditing] = useState<Shift | null>(null);
+  // Selfie lightbox — images are streamed through an admin-only API route.
+  const [viewing, setViewing] = useState<{ id: number; kind: "in" | "out"; label: string } | null>(null);
+  const [photoFailed, setPhotoFailed] = useState(false);
   const [editIn, setEditIn] = useState("");
   const [editOut, setEditOut] = useState("");
   const [editNote, setEditNote] = useState("");
@@ -622,30 +627,111 @@ export function AttendanceAdmin() {
               ) : (
                 <div className="flex flex-col" style={{ gap: "0.5rem" }}>
                   {shifts.map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => startEdit(s)}
-                      className="w-full text-left border-b border-[#1a1a1a] pb-2 hover:border-[#FF0000] transition-colors"
-                      data-cursor-hover
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-white text-sm">
-                          {String(s.work_date).slice(0, 10)}
-                        </span>
-                        <span className="text-xs tabular-nums" style={{ color: s.clock_out_at ? "#999" : "#FF0000" }}>
-                          {formatTime(s.clock_in_at)} →{" "}
-                          {s.clock_out_at ? formatTime(s.clock_out_at) : "OPEN"}
-                        </span>
+                    <div key={s.id} className="border-b border-[#1a1a1a] pb-2">
+                      <button
+                        onClick={() => startEdit(s)}
+                        className="w-full text-left hover:opacity-80 transition-opacity"
+                        data-cursor-hover
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-white text-sm">
+                            {String(s.work_date).slice(0, 10)}
+                          </span>
+                          <span className="text-xs tabular-nums" style={{ color: s.clock_out_at ? "#999" : "#FF0000" }}>
+                            {formatTime(s.clock_in_at)} →{" "}
+                            {s.clock_out_at ? formatTime(s.clock_out_at) : "OPEN"}
+                          </span>
+                        </div>
+                        {s.note && (
+                          <p className="text-[#555] text-[10px] tracking-wide" style={{ marginTop: "0.2rem" }}>
+                            Corrected: {s.note}
+                          </p>
+                        )}
+                      </button>
+
+                      {/* Selfies — sibling buttons (not nested) so the markup stays valid */}
+                      <div className="flex items-center gap-4" style={{ marginTop: "0.4rem" }}>
+                        {s.has_in_photo ? (
+                          <button
+                            onClick={() => {
+                              setPhotoFailed(false);
+                              setViewing({ id: s.id, kind: "in", label: `${String(s.work_date).slice(0, 10)} · clock in ${formatTime(s.clock_in_at)}` });
+                            }}
+                            className="text-[10px] text-[#FF0000] hover:opacity-70 transition-opacity tracking-[0.2em] uppercase"
+                            data-cursor-hover
+                          >
+                            In photo
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-[#444] tracking-[0.2em] uppercase">No in photo</span>
+                        )}
+                        {s.clock_out_at &&
+                          (s.has_out_photo ? (
+                            <button
+                              onClick={() => {
+                                setPhotoFailed(false);
+                                setViewing({ id: s.id, kind: "out", label: `${String(s.work_date).slice(0, 10)} · clock out ${formatTime(s.clock_out_at!)}` });
+                              }}
+                              className="text-[10px] text-[#FF0000] hover:opacity-70 transition-opacity tracking-[0.2em] uppercase"
+                              data-cursor-hover
+                            >
+                              Out photo
+                            </button>
+                          ) : (
+                            <span className="text-[10px] text-[#444] tracking-[0.2em] uppercase">No out photo</span>
+                          ))}
                       </div>
-                      {s.note && (
-                        <p className="text-[#555] text-[10px] tracking-wide" style={{ marginTop: "0.2rem" }}>
-                          Corrected: {s.note}
-                        </p>
-                      )}
-                    </button>
+                    </div>
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Selfie lightbox ── */}
+        {viewing && (
+          <div
+            className="fixed inset-0 z-[110] flex items-center justify-center"
+            style={{ background: "rgba(0,0,0,0.95)", padding: "1.5rem" }}
+            onClick={() => setViewing(null)}
+          >
+            <div className="w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+              <p className="text-[10px] text-[#FF0000] tracking-[0.3em] uppercase" style={{ marginBottom: "0.5rem" }}>
+                Attendance Photo
+              </p>
+              <p className="text-white text-sm" style={{ marginBottom: "var(--space-md)" }}>
+                {fixFor?.name} · {viewing.label}
+              </p>
+
+              <div
+                className="w-full border border-[#333] flex items-center justify-center"
+                style={{ aspectRatio: "1 / 1", background: "#0d0d0d" }}
+              >
+                {photoFailed ? (
+                  <p className="text-[#666] text-xs text-center leading-relaxed" style={{ padding: "1rem" }}>
+                    Photo unavailable. It may have been removed by the 90-day
+                    retention policy.
+                  </p>
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={`/api/attendance/admin/photo?shiftId=${viewing.id}&kind=${viewing.kind}`}
+                    alt={`${fixFor?.name ?? "Employee"} clock ${viewing.kind} photo`}
+                    className="w-full h-full object-cover"
+                    onError={() => setPhotoFailed(true)}
+                  />
+                )}
+              </div>
+
+              <button
+                onClick={() => setViewing(null)}
+                className="w-full text-xs tracking-[0.25em] uppercase py-3 border border-[#333] text-white hover:border-white transition-colors"
+                style={{ marginTop: "var(--space-md)" }}
+                data-cursor-hover
+              >
+                Close
+              </button>
             </div>
           </div>
         )}

@@ -62,14 +62,14 @@ export const ORION_VOUCHER_HTML = `<!DOCTYPE html>
         </table>
       </td></tr>
       <tr><td align="center" style="padding:16px 24px 28px 24px;font-family:'Montserrat',Arial,Helvetica,sans-serif;font-size:12px;line-height:19px;color:#555555;">
-        Valid for online purchases on rarerabbit.in<br>Valid till 20 November 2026
+        Valid for online purchases<br>Valid till 20 November 2026
       </td></tr>
     </table>
   </td></tr>
 
   <!-- How to redeem -->
   <tr><td class="pad" style="padding:28px 56px 8px 56px;font-family:'Montserrat',Arial,Helvetica,sans-serif;color:#e6e6e6;">
-    <p style="margin:0;font-size:14px;line-height:23px;color:#bdbdbd;">To use it, shop online at rarerabbit.in and enter this code at checkout. The code is personal to you, so please don't share it.</p>
+    <p style="margin:0;font-size:14px;line-height:23px;color:#bdbdbd;">To use it, shop online and enter this code at checkout. The code is personal to you, so please don't share it.</p>
   </td></tr>
 
   <!-- Sign-off -->

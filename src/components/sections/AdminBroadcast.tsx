@@ -67,8 +67,9 @@ type SendResult = { sent: number; failed: number; total: number };
 function ComposePanel() {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
-  const [count, setCount] = useState<number | null>(null);
-  const [countError, setCountError] = useState("");
+  type ListInfo = { count?: number; skipped?: number; error?: string };
+  const [lists, setLists] = useState<Record<string, ListInfo> | null>(null);
+  const [loadError, setLoadError] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<SendResult | null>(null);
@@ -78,6 +79,7 @@ function ComposePanel() {
   type TemplateMeta = {
     id: string;
     label: string;
+    list: string;
     usesMessage: boolean;
     defaultSubject?: string;
     note?: string;
@@ -88,6 +90,13 @@ function ComposePanel() {
 
   const activeTemplate = templates.find((t) => t.id === template);
   const needsMessage = activeTemplate?.usesMessage ?? true;
+
+  // Recipient count comes from whichever sheet the selected template sends to.
+  const listId = activeTemplate?.list ?? "broadcast";
+  const isVoucherList = listId === "voucher";
+  const listInfo = lists?.[listId];
+  const count = listInfo?.count ?? null;
+  const countError = loadError || listInfo?.error || "";
 
   // Sender + attachment
   const [senders, setSenders] = useState<{ value: string; label: string }[]>([]);
@@ -125,15 +134,16 @@ function ComposePanel() {
       const res = await fetch("/api/admin/broadcast");
       const data = (await res.json()) as {
         success: boolean;
-        count?: number;
+        lists?: Record<string, ListInfo>;
         senders?: { value: string; label: string }[];
         templates?: TemplateMeta[];
         missingImages?: string[];
         maxAttachmentBytes?: number;
         error?: string;
       };
-      if (data.success && typeof data.count === "number") {
-        setCount(data.count);
+      if (data.success && data.lists) {
+        setLists(data.lists);
+        setLoadError("");
         if (data.senders?.length) {
           setSenders(data.senders);
           setSender((cur) => cur || data.senders![0].value);
@@ -141,9 +151,9 @@ function ComposePanel() {
         if (data.templates?.length) setTemplates(data.templates);
         setMissingImages(data.missingImages ?? []);
         if (data.maxAttachmentBytes) setMaxBytes(data.maxAttachmentBytes);
-      } else setCountError(data.error ?? "Could not load recipients.");
+      } else setLoadError(data.error ?? "Could not load recipients.");
     } catch {
-      setCountError("Could not load recipients.");
+      setLoadError("Could not load recipients.");
     }
   }, []);
 
@@ -233,7 +243,7 @@ function ComposePanel() {
       <div className="border border-[#333]" style={{ padding: "1rem 1.25rem", marginBottom: "var(--space-lg)" }}>
         <div className="flex items-baseline justify-between gap-4 flex-wrap">
           <span className="text-[10px] text-[#555] tracking-widest uppercase">
-            Recipients — Broadcast List
+            Recipients — {isVoucherList ? "Voucher List" : "Broadcast List"}
           </span>
           <span className="text-white text-xl font-bold">
             {countError ? "—" : count === null ? "…" : count}
@@ -242,8 +252,16 @@ function ComposePanel() {
         <p className="text-[11px] text-[#666] leading-relaxed" style={{ marginTop: "0.6rem" }}>
           {countError
             ? countError
-            : "Read from the broadcast sheet (Name + Email). Each person receives their own email — recipients never see one another's addresses. The sheet is never modified."}
+            : isVoucherList
+              ? "Read from the voucher sheet (Name + Email + Voucher Code). Each person receives their own email with their own code. The sheet is never modified."
+              : "Read from the broadcast sheet (Name + Email). Each person receives their own email — recipients never see one another's addresses. The sheet is never modified."}
         </p>
+        {!countError && (listInfo?.skipped ?? 0) > 0 && (
+          <p className="text-[11px] text-[#FF0000] leading-relaxed" style={{ marginTop: "0.4rem" }}>
+            {listInfo!.skipped} row{listInfo!.skipped === 1 ? "" : "s"} skipped (invalid email
+            {isVoucherList ? ", missing voucher code" : ""} or duplicate) — they will not be emailed.
+          </p>
+        )}
       </div>
 
       {/* Template */}

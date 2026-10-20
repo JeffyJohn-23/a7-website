@@ -1,40 +1,49 @@
 import { google } from "googleapis";
 import { Resend } from "resend";
-import { renderTemplate, type TemplateId } from "@/lib/emailTemplates";
+import { renderTemplate, type RecipientList, type TemplateId } from "@/lib/emailTemplates";
 
 // ─── Applicant broadcast ────────────────────────────────────────────────────
-// Reads the curated broadcast list (GOOGLE_SHEET_ID_BROADCAST) and emails each
-// person individually (never a shared To:/CC), batched to respect Resend's
-// limits. This sheet is READ-ONLY to this code — nothing is ever written back.
+// Reads a recipient sheet and emails each person individually (never a shared
+// To:/CC), paced to respect Resend's limits. These sheets are READ-ONLY to
+// this code — nothing is ever written back.
 //
-// Expected sheet shape (row 1 is a header, data starts at row 2):
-//   A = Full Name
-//   B = Email
+// Each template names the list it sends to. Row 1 is a header, data starts at
+// row 2.
+//   broadcast (GOOGLE_SHEET_ID_BROADCAST):     A = Full Name, B = Email
+//   voucher   (GOOGLE_SHEET_ID_ORION_VOUCHER): A = Full Name, B = Email, C = Voucher Code
 
 const SHEET_NAME = "Sheet1";
-const BROADCAST_RANGE = `${SHEET_NAME}!A2:B`;
 const COL_FULL_NAME = 0; // A
 const COL_EMAIL = 1; // B
+const COL_VOUCHER = 2; // C (voucher list only)
+
+const LISTS: Record<RecipientList, { envVar: string; range: string; needsVoucher: boolean }> = {
+  broadcast: { envVar: "GOOGLE_SHEET_ID_BROADCAST", range: `${SHEET_NAME}!A2:B`, needsVoucher: false },
+  voucher: { envVar: "GOOGLE_SHEET_ID_ORION_VOUCHER", range: `${SHEET_NAME}!A2:C`, needsVoucher: true },
+};
 
 // Sends go one-per-request (the batch endpoint cannot carry attachments), so
 // pace them under Resend's 10 req/s limit. 150ms ≈ 6.6/s with headroom.
 const SEND_DELAY_MS = 150;
 
-export type Recipient = { email: string; name: string };
+export type Recipient = { email: string; name: string; voucher?: string };
+
+/** `skipped` counts rows dropped for a bad email, a missing voucher or a duplicate. */
+export type RecipientFetch = { recipients: Recipient[]; skipped: number };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * Fetch unique, valid recipients from the dedicated broadcast sheet.
- * Rows without a valid email are skipped; duplicates are collapsed.
+ * Fetch unique, valid recipients from a recipient sheet.
+ * Rows without a valid email (or, for the voucher list, without a code) are
+ * skipped; duplicate emails keep their first row.
  */
-export async function fetchBroadcastRecipients(): Promise<Recipient[]> {
+export async function fetchRecipients(list: RecipientList = "broadcast"): Promise<RecipientFetch> {
+  const { envVar, range, needsVoucher } = LISTS[list];
   const creds = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  const sheetId = process.env.GOOGLE_SHEET_ID_BROADCAST;
+  const sheetId = process.env[envVar];
   if (!creds || !sheetId) {
-    throw new Error(
-      "Broadcast sheet is not configured (GOOGLE_SERVICE_ACCOUNT_JSON / GOOGLE_SHEET_ID_BROADCAST)."
-    );
+    throw new Error(`Recipient sheet is not configured (GOOGLE_SERVICE_ACCOUNT_JSON / ${envVar}).`);
   }
 
   const auth = new google.auth.GoogleAuth({
@@ -45,28 +54,39 @@ export async function fetchBroadcastRecipients(): Promise<Recipient[]> {
 
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
-    range: BROADCAST_RANGE,
+    range,
   });
 
   const rows = res.data.values ?? [];
   const seen = new Set<string>();
   const recipients: Recipient[] = [];
+  let skipped = 0;
 
   for (const row of rows) {
+    const name = String(row[COL_FULL_NAME] ?? "").trim();
     const email = String(row[COL_EMAIL] ?? "").trim();
-    if (!EMAIL_RE.test(email)) continue; // skips blanks and malformed rows
+    const voucher = String(row[COL_VOUCHER] ?? "").trim();
+
+    // Fully blank rows aren't worth reporting.
+    if (!name && !email && !voucher) continue;
+
+    // Bad email, or a voucher row with no code — never send a blank voucher.
+    if (!EMAIL_RE.test(email) || (needsVoucher && !voucher)) {
+      skipped++;
+      continue;
+    }
 
     const key = email.toLowerCase();
-    if (seen.has(key)) continue; // de-duplicate
+    if (seen.has(key)) {
+      skipped++; // de-duplicate
+      continue;
+    }
     seen.add(key);
 
-    recipients.push({
-      email,
-      name: String(row[COL_FULL_NAME] ?? "").trim(),
-    });
+    recipients.push(needsVoucher ? { email, name, voucher } : { email, name });
   }
 
-  return recipients;
+  return { recipients, skipped };
 }
 
 function escapeHtml(str: string): string {
@@ -202,6 +222,7 @@ export async function sendBroadcast(
         html: renderTemplate(options?.template ?? "default", {
           message,
           recipientName: r.name,
+          voucher: r.voucher,
           buildDefault: buildBroadcastHtml,
         }),
         ...(attachments ? { attachments } : {}),

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/adminAuth";
 import {
-  fetchBroadcastRecipients,
+  fetchRecipients,
   sendBroadcast,
   isAllowedSender,
   SENDERS,
@@ -13,6 +13,7 @@ import {
   getTemplate,
   isTemplateId,
   missingWtlImages,
+  type RecipientList,
   type TemplateId,
 } from "@/lib/emailTemplates";
 
@@ -31,24 +32,30 @@ export async function GET() {
     return NextResponse.json({ success: false, error: "Unauthorized." }, { status: 401 });
   }
 
-  try {
-    const recipients = await fetchBroadcastRecipients();
-    return NextResponse.json({
-      success: true,
-      count: recipients.length,
-      senders: SENDERS,
-      templates: TEMPLATES,
-      // Surfaced so the operator knows images will be missing before sending.
-      missingImages: missingWtlImages(),
-      maxAttachmentBytes: MAX_ATTACHMENT_BYTES,
-    });
-  } catch (err) {
-    console.error("[/api/admin/broadcast] preview failed:", err);
-    return NextResponse.json(
-      { success: false, error: "Could not read the broadcast sheet." },
-      { status: 500 }
-    );
-  }
+  // Each list is read independently so an unconfigured voucher sheet doesn't
+  // block the regular broadcast (and vice versa).
+  const listIds: RecipientList[] = ["broadcast", "voucher"];
+  const settled = await Promise.allSettled(listIds.map((id) => fetchRecipients(id)));
+  const lists = Object.fromEntries(
+    listIds.map((id, i) => {
+      const r = settled[i];
+      if (r.status === "fulfilled") {
+        return [id, { count: r.value.recipients.length, skipped: r.value.skipped }];
+      }
+      console.error(`[/api/admin/broadcast] preview failed for ${id}:`, r.reason);
+      return [id, { error: `Could not read the ${id} sheet.` }];
+    })
+  );
+
+  return NextResponse.json({
+    success: true,
+    lists,
+    senders: SENDERS,
+    templates: TEMPLATES,
+    // Surfaced so the operator knows images will be missing before sending.
+    missingImages: missingWtlImages(),
+    maxAttachmentBytes: MAX_ATTACHMENT_BYTES,
+  });
 }
 
 export async function POST(request: Request) {
@@ -138,10 +145,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const recipients = await fetchBroadcastRecipients();
+    const { recipients } = await fetchRecipients(template.list);
     if (recipients.length === 0) {
       return NextResponse.json(
-        { success: false, error: "No recipients found in the broadcast sheet." },
+        { success: false, error: `No recipients found in the ${template.list} sheet.` },
         { status: 400 }
       );
     }

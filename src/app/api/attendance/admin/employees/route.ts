@@ -89,7 +89,13 @@ export async function POST(request: Request) {
   }
 }
 
-/** Activate / deactivate. Deactivating revokes access immediately. */
+/**
+ * Either:
+ *  - { id, active }         Activate / deactivate. Deactivating revokes access immediately.
+ *  - { id, resetPassword }  Clear the password hash so the employee sets a new one on
+ *                           next sign-in (the same first-time flow as a new account).
+ *                           Passwords are bcrypt-hashed and cannot be recovered.
+ */
 export async function PATCH(request: Request) {
   if (!isDbConfigured()) {
     return NextResponse.json({ success: false, error: "Attendance is not configured." }, { status: 503 });
@@ -100,7 +106,27 @@ export async function PATCH(request: Request) {
   const body = (await request.json().catch(() => ({}))) as {
     id?: number;
     active?: boolean;
+    resetPassword?: boolean;
   };
+
+  if (body.resetPassword === true) {
+    if (typeof body.id !== "number") {
+      return NextResponse.json({ success: false, error: "Invalid request." }, { status: 400 });
+    }
+    if (body.id === gate.employee!.id) {
+      return NextResponse.json(
+        { success: false, error: "You cannot reset your own password here." },
+        { status: 400 }
+      );
+    }
+    const rows = (await sql`
+      UPDATE employees SET password_hash = NULL WHERE id = ${body.id} RETURNING id
+    `) as { id: number }[];
+    if (rows.length === 0) {
+      return NextResponse.json({ success: false, error: "Employee not found." }, { status: 404 });
+    }
+    return NextResponse.json({ success: true });
+  }
 
   if (typeof body.id !== "number" || typeof body.active !== "boolean") {
     return NextResponse.json({ success: false, error: "Invalid request." }, { status: 400 });

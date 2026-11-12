@@ -247,6 +247,31 @@ export function AttendanceAdmin() {
     await load();
   };
 
+  const resetPassword = async (e: { id: number; name: string; email: string }) => {
+    if (
+      !window.confirm(
+        `Reset the password for ${e.name} (${e.email})?\n\nTheir current password will stop working. They will choose a new one the next time they sign in with this email.`
+      )
+    )
+      return;
+    try {
+      const res = await fetch("/api/attendance/admin/employees", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: e.id, resetPassword: true }),
+      });
+      const data = (await res.json()) as { success: boolean; error?: string };
+      await load();
+      window.alert(
+        data.success
+          ? `Password reset. Ask ${e.name} to sign in at /attendance/login with ${e.email} and choose a new password.`
+          : data.error ?? "Could not reset password."
+      );
+    } catch {
+      window.alert("Network error — the password was not reset.");
+    }
+  };
+
   const logOut = async () => {
     await fetch("/api/attendance/logout", { method: "POST" }).catch(() => {});
     window.location.href = "/attendance/login";
@@ -483,6 +508,15 @@ export function AttendanceAdmin() {
                   >
                     Shifts
                   </button>
+                  {e.active && !e.needs_password && (
+                    <button
+                      onClick={() => void resetPassword(e)}
+                      className="text-[10px] text-[#555] hover:text-[#FF0000] transition-colors tracking-[0.2em] uppercase"
+                      data-cursor-hover
+                    >
+                      Reset password
+                    </button>
+                  )}
                   <button
                     onClick={() => setActive(e.id, !e.active)}
                     className="text-[10px] text-[#555] hover:text-[#FF0000] transition-colors tracking-[0.2em] uppercase"
